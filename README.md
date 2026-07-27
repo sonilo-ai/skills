@@ -8,6 +8,10 @@ Sonilo's flagship capability is **video-to-music**: hand it a finished video and
 
 ## Installation
 
+These skills follow the community [Agent Skills specification](https://agentskills.io/specification), so any compatible tool can install them via `npx skills add`. This repo is also set up as a **Claude Code plugin marketplace**, so Claude Code users can install the same skills with `/plugin` instead — pick whichever fits your workflow.
+
+### Option 1: `npx skills` (any compatible assistant)
+
 ```bash
 npx skills add sonilo-ai/skills
 ```
@@ -17,6 +21,15 @@ Or install a single skill:
 ```bash
 npx skills add sonilo-ai/skills/music
 ```
+
+### Option 2: Claude Code plugin
+
+```
+/plugin marketplace add sonilo-ai/skills
+/plugin install skills@sonilo-skills
+```
+
+This installs the same nine skills (`music`, `sound-effects`, `video-to-sound`, `audio-ducking`, `dubbing`, `task-recovery`, `account`, `audio-playback`, `setup-api-key`) as a single Claude Code plugin, discovered directly from their existing top-level directories — no separate copy to keep in sync. It's a skills-only plugin (no MCP server, no bundled tools); see [Configuration](#configuration) below for how to connect the Sonilo MCP server itself.
 
 ## Available Skills
 

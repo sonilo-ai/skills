@@ -1,0 +1,25 @@
+{
+  "name": "skills",
+  "displayName": "Sonilo Skills",
+  "version": "1.0.0",
+  "description": "Agent Skills for Sonilo's licensed music, sound-effects, dubbing, and audio-ducking API — text-to-music, video-to-music, sound effects, video-to-sound, dubbing, ducking, account, and setup.",
+  "author": {
+    "name": "Sonilo AI",
+    "url": "https://sonilo.com"
+  },
+  "homepage": "https://github.com/sonilo-ai/skills",
+  "repository": "https://github.com/sonilo-ai/skills",
+  "license": "MIT",
+  "keywords": ["music", "sound-effects", "audio", "video-to-music", "dubbing", "sonilo"],
+  "skills": [
+    "./music",
+    "./sound-effects",
+    "./video-to-sound",
+    "./audio-ducking",
+    "./dubbing",
+    "./task-recovery",
+    "./account",
+    "./audio-playback",
+    "./setup-api-key"
+  ]
+}
