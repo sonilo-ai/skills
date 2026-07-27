@@ -1,0 +1,16 @@
+{
+  "name": "sonilo-skills",
+  "owner": {
+    "name": "Sonilo AI",
+    "email": "info@sonilo.com"
+  },
+  "description": "Sonilo — Agent Skills for licensed music, sound-effects, dubbing, and audio-ducking generation, scored to your video's pacing and emotion.",
+  "plugins": [
+    {
+      "name": "skills",
+      "source": "./",
+      "description": "Agent Skills for Sonilo's licensed music, sound-effects, dubbing, and audio-ducking API.",
+      "category": "productivity"
+    }
+  ]
+}
