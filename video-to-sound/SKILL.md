@@ -117,6 +117,15 @@ Both endpoints are task-based (202 + poll), same as the sound-effects tools — 
 | `ducking` | bool | `true` | Dips the generated music (and SFX bed) under the source speech. Defaults **on** here — pass `false` to opt out. |
 | `output_directory` | string | `SONILO_MCP_BASE_PATH` | Absolute, or relative to the base path. |
 
+## Prompting
+
+No prompt is required — the model reads the cut. A short structured brief
+adds your intent on top. Since this endpoint generates music **and** SFX in
+one balanced call, both crafts apply:
+
+- Pre-flight (inspect the video, caps, credits, verification): [references/preflight.md](../references/preflight.md)
+- Music brief craft: [music/prompting.md](../music/prompting.md) · SFX action-map craft: [sound-effects/prompting.md](../sound-effects/prompting.md)
+
 ## Workflow Tips
 
 - **Use this instead of chaining `video_to_music` + `video_to_sfx`.** The two layers are balanced against each other by the backend (so the SFX doesn't fight the score), and it's one charge, not two.
