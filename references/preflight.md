@@ -1,5 +1,10 @@
 # Sonilo generation pre-flight
 
+**Scope: video inputs** (`video_to_music`, `video_to_sfx`, `video_to_sound`).
+`text_to_music` / `text_to_sfx` have no video to inspect — skip Steps 1–2;
+credits (Step 3) and verification still apply. Prompt craft for text inputs
+lives in [music/prompting.md](../music/prompting.md).
+
 A structured brief before generating is the highest-leverage step for output
 quality — and what makes a brief work is **consistency with the video**:
 same subject, same structure, same emphasized moments. This is the

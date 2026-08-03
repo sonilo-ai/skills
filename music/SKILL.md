@@ -133,9 +133,15 @@ curl -X POST "https://api.sonilo.com/v1/video-to-music" \
 
 ## Prompting
 
-No prompt is required — the model reads the cut. A short structured brief
-adds what the video can't carry: your intent — genre, the moment that must
-hit, the sounds that must not appear.
+Two different situations:
+
+- **`video_to_music`** — no prompt required; the model reads the cut. A short
+  structured brief adds what the video can't carry: your intent — genre, the
+  moment that must hit, the sounds that must not appear.
+- **`text_to_music`** — the prompt IS the input; there is no video to lean on.
+  The same craft vocabulary applies (genre, mood, energy arc, instrumentation,
+  exclusions — see [prompting.md](./prompting.md)); skip the video pre-flight
+  and describe structure in the prompt ("builds for 10 s, drops, outro").
 
 Before a paid call: probe the exact duration and existing audio, respect the
 **360 s** `video_to_music` cap (over = 422 reject, never truncated), and get
