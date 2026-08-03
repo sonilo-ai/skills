@@ -1,8 +1,3 @@
----
-name: music-prompting
-description: Write the style prompt for Sonilo's video_to_music (API or MCP). Use when generating music for a video with Sonilo — covers the audio brief, genre/mood/energy wording, preserve_speech and ducking, exclusions, and segmented music. Run the prompting pre-flight first (duration cap 360 s, credits, existing audio).
----
-
 # Sonilo video_to_music prompting
 
 The model reads the cut itself — pacing, motion, edit points — and generation
@@ -47,7 +42,7 @@ moments the creator cared about. Don't discard it; re-extract from it:
 This reverse-derivation beats writing a music description from scratch — it
 inherits the video's structure for free. One guardrail: the rendered pixels
 still outrank the prompt. Where the render deviates from what was asked,
-brief against what's on screen (see the `prompting` pre-flight).
+brief against what's on screen (see the [pre-flight](../references/preflight.md)).
 
 ## Writing the prompt
 

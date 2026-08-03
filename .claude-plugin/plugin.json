@@ -2,7 +2,7 @@
   "name": "skills",
   "displayName": "Sonilo Skills",
   "version": "1.1.0",
-  "description": "Agent Skills for Sonilo's licensed music, sound-effects, dubbing, and audio-ducking API \u2014 text-to-music, video-to-music, sound effects, video-to-sound, dubbing, ducking, account, and setup \u2014 plus prompting-technique skills (structured briefs for music and SFX) ported from sonilo-prompt-assist.",
+  "description": "Agent Skills for Sonilo's licensed music, sound-effects, dubbing, and audio-ducking API \u2014 with structured-brief prompting guidance (pre-flight, music briefs, SFX action maps) folded into each skill.",
   "author": {
     "name": "Sonilo AI",
     "url": "https://sonilo.com"
@@ -29,9 +29,6 @@
     "./task-recovery",
     "./account",
     "./audio-playback",
-    "./setup-api-key",
-    "./prompting",
-    "./music-prompting",
-    "./sfx-prompting"
+    "./setup-api-key"
   ]
 }

@@ -131,6 +131,20 @@ curl -X POST "https://api.sonilo.com/v1/video-to-music" \
 | `output_format` | string | `m4a` | `text_to_music`/`video_to_music` only — `video_to_video_music` has no such param and always outputs a muxed `.mp4`. `m4a` or `wav`. `wav` (and, on `video_to_music`, `preserve_speech`/`ducking`) triggers the backend's async mode internally — no user-facing "mode" param needed. |
 | `output_directory` | string | `SONILO_MCP_BASE_PATH` | Absolute, or relative to the base path. |
 
+## Prompting
+
+No prompt is required — the model reads the cut. A short structured brief
+adds what the video can't carry: your intent — genre, the moment that must
+hit, the sounds that must not appear.
+
+Before a paid call: probe the exact duration and existing audio, respect the
+**360 s** `video_to_music` cap (over = 422 reject, never truncated), and get
+sign-off — failed runs auto-refund, but your own retry is a new charge.
+Write the brief first, generate once, iterate on the prompt, not on rerolls.
+
+- Full pre-flight (inspect the video, caps, credits, verification): [references/preflight.md](../references/preflight.md)
+- Style-prompt craft (audio brief, genre/energy wording, `preserve_speech`, segmented music): [prompting.md](./prompting.md)
+
 ## Workflow Tips
 
 - **Video-to-music is the flagship use case.** If the user has a finished video and wants a soundtrack, prefer `video_to_music` over `text_to_music` — the result is synced to the actual cut, not just a generic track of matching length.

@@ -1,15 +1,10 @@
----
-name: prompting
-description: Pre-flight for Sonilo audio generation (video_to_music / video_to_sfx, API or MCP). Use when preparing or improving the input for a Sonilo generation call — picks the endpoint, checks duration caps and existing audio, and routes to the right prompting skill. Do not trigger when the user explicitly wants a bare no-prompt baseline or is only asking how the API works.
----
-
-# Sonilo Prompting — router
+# Sonilo generation pre-flight
 
 A structured brief before generating is the highest-leverage step for output
 quality — and what makes a brief work is **consistency with the video**:
-same subject, same structure, same emphasized moments. This skill is the
-pre-flight; the actual prompt craft lives in `music-prompting` and
-`sfx-prompting`.
+same subject, same structure, same emphasized moments. This is the
+pre-flight; the actual prompt craft lives in [music prompting](../music/prompting.md)
+and [SFX prompting](../sound-effects/prompting.md).
 
 ## Step 1 — Inspect the video
 
@@ -68,14 +63,14 @@ except `preserve_speech`'s speech+music mux.
   tools return a `task_id`; fetch results with `get_generation_task`. (The
   local `sonilo-mcp` package also accepts a `video_path` and uploads for you.)
 - MCP `video_to_music` has **no `segments` parameter** — segmented music via
-  MCP works only by describing sections inside the prompt text (see the
-  `music-prompting` skill).
+  MCP works only by describing sections inside the prompt text (see
+  [music prompting](../music/prompting.md)).
 - Field names and limits are otherwise identical across REST and MCP.
 
 ## Step 5 — Route
 
-- Music brief and prompt → `music-prompting` skill
-- SFX action map and segments → `sfx-prompting` skill
+- Music brief and prompt → [music prompting](../music/prompting.md)
+- SFX action map and segments → [SFX prompting](../sound-effects/prompting.md)
 
 ## Verification (both endpoints)
 
@@ -110,5 +105,5 @@ ffmpeg -i video.mp4 -i track.m4a -map 0:v -map 1:a -c:v copy -shortest out.mp4
   prompt, not on rerolls.
 
 Facts verified with Sonilo engineering 2026-07-28 — details in
-`references/api-claims.md`. Re-verify before relying on numbers in new major
+[api-claims.md](./api-claims.md). Re-verify before relying on numbers in new major
 versions.

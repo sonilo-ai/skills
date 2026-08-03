@@ -1,8 +1,3 @@
----
-name: sfx-prompting
-description: Build the action map and segments array for Sonilo's video_to_sfx (API or MCP). Use when generating sound effects for a video with Sonilo — covers the scene-bed prompt, time-segmented sound bundles, materials vocabulary, and the enforced segment rules. Run the prompting pre-flight first (duration cap 180 s, credits, existing audio).
----
-
 # Sonilo video_to_sfx prompting
 
 SFX quality comes from a time-segmented action map: what is on screen, what

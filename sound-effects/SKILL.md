@@ -132,6 +132,19 @@ Validated by the backend before any charge — an invalid list is rejected with 
 - The last `end` must not exceed the video's actual duration.
 - Max 30 segments total.
 
+## Prompting
+
+No prompt is required — the model reads the cut. Quality comes from a
+time-segmented action map: what is on screen, what it's made of, what it
+does, second by second. The footage is the source of truth.
+
+Before a paid call: probe the exact duration and existing audio, respect the
+**180 s** `video_to_sfx` cap (over = 422 reject, never truncated), and get
+sign-off — failed runs auto-refund, but your own retry is a new charge.
+
+- Full pre-flight (inspect the video, caps, credits, verification): [references/preflight.md](../references/preflight.md)
+- Action-map craft (scene bed, sound bundles, materials vocabulary, segment rules): [prompting.md](./prompting.md)
+
 ## Workflow Tips
 
 - **Text-only SFX** (`text_to_sfx`) is for a single clip with no video context — a UI chime, a whoosh, a foley element you'll layer yourself.

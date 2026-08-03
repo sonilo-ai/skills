@@ -45,22 +45,19 @@ This installs the same nine skills (`music`, `sound-effects`, `video-to-sound`, 
 | [audio-playback](./audio-playback) | Play a local audio file through the system's speakers (`play_audio`) |
 | [setup-api-key](./setup-api-key) | Guide through obtaining a Sonilo API key and connecting the Sonilo MCP server |
 
-### Prompting skills
+### Prompting guidance
 
-Sonilo needs no prompt — the video is the context. These skills are for when
-you want control: a structured audio brief adds your intent (genre, the
-moment that must hit, the sounds that must not appear) on top of what the
-model reads from the cut. Ported from
+Sonilo needs no prompt — the video is the context. When you want control, a
+structured audio brief adds your intent (genre, the moment that must hit,
+the sounds that must not appear) on top of what the model reads from the
+cut. That guidance is folded into the skills themselves (ported from
 [sonilo-prompt-assist](https://github.com/sonilo-ai/sonilo-prompt-assist),
-which is deprecated in favor of this repo.
+now deprecated in favor of this repo):
 
-| Skill | Description |
-| --- | --- |
-| [prompting](./prompting) | Pre-flight router: endpoint choice, duration caps, existing-audio check, credit sign-off — run before any generation |
-| [music-prompting](./music-prompting) | Style-prompt craft for `video_to_music`: audio brief, genre/energy wording, speech preservation, ducking, segmented music |
-| [sfx-prompting](./sfx-prompting) | Action map → segments array for `video_to_sfx`: sound bundles, materials vocabulary, enforced segment rules |
-
-Verified API behavior these skills rely on: [references/api-claims.md](./references/api-claims.md).
+- [references/preflight.md](./references/preflight.md) — pre-flight before any paid call: inspect the video, duration caps, credits, verification
+- [music/prompting.md](./music/prompting.md) — style-prompt craft for `video_to_music`
+- [sound-effects/prompting.md](./sound-effects/prompting.md) — action map → segments craft for `video_to_sfx`
+- [references/api-claims.md](./references/api-claims.md) — verified API behavior the guidance relies on
 
 ## Configuration
 
