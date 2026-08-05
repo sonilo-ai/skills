@@ -2,7 +2,7 @@
 
 # Sonilo Skills
 
-Agent skills for [Sonilo](https://sonilo.com)'s licensed music, sound-effects, dubbing, and audio-ducking API. These skills follow the [Agent Skills specification](https://agentskills.io/specification) and can be used with any compatible AI coding assistant.
+Agent skills for [Sonilo](https://sonilo.com/?utm_source=github&utm_medium=oss&utm_campaign=skills-repo)'s licensed music, sound-effects, dubbing, and audio-ducking API. These skills follow the [Agent Skills specification](https://agentskills.io/specification) and can be used with any compatible AI coding assistant.
 
 Sonilo's flagship capability is **video-to-music**: hand it a finished video and it composes an original soundtrack matched to the cut — the music follows the pacing, motion, and emotion because the model saw them. Every track is licensed and safe for commercial use.
 
