@@ -1,8 +1,8 @@
 ---
 name: setup-api-key
-description: Guides users through connecting to Sonilo — either the local MCP server with an API key, the remote OAuth Claude Code plugin with no key at all, or a Python/JS SDK or CLI install. Use when the user needs to configure Sonilo, when Sonilo tools are missing or fail due to a missing/invalid API key, or when the user mentions wanting to use Sonilo for the first time. First checks what's already connected and working, and only runs full setup when needed.
+description: Guides users through connecting to Sonilo — signing in with `sonilo login` (OAuth, no key), the remote OAuth Claude Code plugin, or an API key for CI and headless use. Use when the user needs to configure Sonilo, wants to sign in or connect their Sonilo account, when Sonilo tools are missing, or when a call fails because no key or credential is available. First checks what already works, and only runs full setup when needed.
 license: MIT
-compatibility: Requires internet access to platform.sonilo.com and api.sonilo.com. Exact requirement depends on the chosen path — `claude mcp add`/`/plugin install` for MCP, or just `pip`/`npm` for the SDK and CLI.
+compatibility: Requires internet access to platform.sonilo.com and api.sonilo.com. Exact requirement depends on the chosen path — a CLI install plus a browser for `sonilo login`, `claude mcp add`/`/plugin install` for MCP, or just `pip`/`npm` for the SDKs.
 ---
 
 # Sonilo Setup
@@ -11,13 +11,76 @@ Guide the user through connecting to Sonilo. There are several ways in — pick 
 
 | Path | Needs an API key? | Best for |
 |---|---|---|
-| **A. Remote OAuth MCP plugin** (`sonilo-claude-plugin`) | No — OAuth sign-in | Claude Code users who want the fastest setup, no key to create or store. Full tool coverage — same tools as Path B. |
-| **B. Local MCP server** (`sonilo-mcp`, this repo's skills) | Yes | Any MCP host (Claude Code, Claude Desktop, Codex), or users who prefer holding a key. Full tool coverage — every skill in this repo. |
-| **C. Python/JS SDK or CLI, no MCP** | Yes | Building an app or script directly against the API, or scripting from a shell — not using an MCP-capable agent at all. |
+| **A. `sonilo login`** (CLI sign-in, credential shared with the local MCP server) | No — OAuth in the browser | Anyone on a machine with a browser. One sign-in covers the CLI *and* `uvx sonilo-mcp`, so the MCP config carries no secret. |
+| **B. Remote OAuth MCP plugin** (`sonilo-claude-plugin`) | No — OAuth sign-in | Claude Code users who want nothing running locally. Full tool coverage. |
+| **C. API key** (`SONILO_API_KEY`) | Yes | CI, containers, headless boxes, and anyone who prefers holding a key. Works with every client. |
 
-If the user is in Claude Code and doesn't need to hold a key, lead with **Path A** — it has the full tool set. If they aren't on Claude Code, or prefer holding a key, use **Path B**. If they're not working through an agent at all, point them at **Path C** and stop — the rest of this skill (API key, MCP config) doesn't apply.
+Choosing:
 
-## Path A: Remote OAuth plugin (Claude Code only, no API key)
+- On a machine with a browser and any MCP host → **Path A**. It is the shortest path and leaves no secret in a config file.
+- Claude Code specifically, and nothing local wanted → **Path B**.
+- No browser (CI, a container, a remote box), or the user says they already have a key → **Path C**.
+- Not working through an agent at all (writing code, scripting a shell) → **Path D** at the end; the MCP configuration in A–C does not apply.
+
+## Step 0: Check what already works (all paths)
+
+Do this before changing anything — the answer is often "nothing to do".
+
+1. Check whether a `sonilo` MCP server is already connected (any Sonilo tool, e.g. `text_to_music` or `get_account_services`, is available to call).
+2. If tools exist, call the free, read-only `get_account_services()`.
+3. **Succeeds:** Sonilo is configured and working. Say so and stop. Ask only whether they want to rotate credentials.
+4. **Fails with 401:** authentication is stale, not missing. If they signed in with `sonilo login`, the key may have expired (90 days) or been revoked — `sonilo login` again fixes it. Otherwise the key is wrong: continue at Path C.
+5. **No Sonilo tools at all:** nothing is connected — pick a path above and run it.
+
+Never print, quote, or echo a key or the contents of the credential file. If you must refer to one, redact it.
+
+## Path A: `sonilo login` (no API key, any MCP host)
+
+One sign-in, then both the CLI and the local MCP server are authenticated — the
+CLI writes a credential to `~/.config/sonilo/credentials.json` and
+`sonilo-mcp` (0.16.0 and later) reads it.
+
+```bash
+npm install -g sonilo-cli     # or: pip install sonilo-cli
+sonilo login
+```
+
+The CLI prints a one-time code and opens the browser to
+platform.sonilo.com. The user signs in to their **Sonilo Platform** account
+(separate from a consumer sonilo.com account), confirms the code matches what
+the terminal printed, and approves. On a machine without a browser, add
+`--no-browser` and have them approve the printed URL from another device.
+
+Then add the MCP server with **no secret in the config**:
+
+```bash
+claude mcp add sonilo -- uvx sonilo-mcp     # Claude Code
+codex mcp add sonilo -- uvx sonilo-mcp      # Codex
+```
+
+For Claude Desktop, the whole config is:
+
+```json
+{
+  "mcpServers": {
+    "sonilo": { "command": "uvx", "args": ["sonilo-mcp"], "env": {} }
+  }
+}
+```
+
+Both need the `uv` package manager (provides `uvx`):
+`curl -LsSf https://astral.sh/uv/install.sh | sh`.
+
+Worth telling the user up front:
+
+- Approving mints an ordinary API key on their account, named `cli: <hostname>`, that **expires after 90 days** and is visible and revocable at https://platform.sonilo.com/dashboard/api-keys.
+- `sonilo whoami` shows which account and source is active; `sonilo logout` revokes the key server-side and then forgets it locally.
+- **An exported `SONILO_API_KEY` takes precedence over the sign-in.** If tools authenticate as an unexpected account, check for that variable first — `sonilo whoami` says so explicitly when it is set.
+- Sign-in is for humans. Provisioned/POC accounts are issued a key by Sonilo and cannot use `sonilo login`; those users belong on Path C.
+
+Validate with `get_account_services()`, exactly as in Step 0.
+
+## Path B: Remote OAuth plugin (Claude Code only, no API key)
 
 ```
 claude
@@ -27,35 +90,27 @@ claude
 
 The first Sonilo tool call opens the browser to sign in to a **Sonilo Platform** account (platform.sonilo.com — separate from a consumer sonilo.com account) and approve access. Claude Code stores the resulting token per-user in the OS keychain; nothing to copy, paste, or configure. Review or disconnect anytime from `/mcp`.
 
-This connects to a single hosted endpoint (`https://api.sonilo.com/mcp`, OAuth 2.1 + PKCE) that carries the same tool set as the local server (Path B): music/SFX from text or video, video-to-video music/SFX, video-to-sound, video-to-video-sound, dubbing, audio ducking, and account/usage. Path B is still the better fit for MCP hosts other than Claude Code, or for users who prefer holding and managing their own key.
+This connects to a single hosted endpoint (`https://api.sonilo.com/mcp`, OAuth 2.1 + PKCE) that carries the same tool set as the local server (Paths A and C): music/SFX from text or video, video-to-video music/SFX, video-to-sound, video-to-video-sound, dubbing, audio ducking, and account/usage. Paths A and C are still the better fit for MCP hosts other than Claude Code, or for users who prefer holding and managing their own key.
 
-## Path B: Local MCP server with an API key
-
-### Step 0: Check what's already set up
-
-1. Check whether a `sonilo` MCP server is already connected (e.g. `text_to_music`, `get_account_services`, or any other Sonilo tool is available to call).
-2. If tools are available, check whether `SONILO_API_KEY` is already valid by calling the free, read-only `get_account_services()` tool.
-3. Do not print, quote, or repeat the key. If you mention it, redact it.
-4. **If the call succeeds:** tell the user Sonilo is already configured and working. Skip the rest of this workflow. Ask whether they want to rotate the key; if not, stop.
-5. **If tools exist but the call fails (401):** the key is invalid/expired — continue to Step 2 (key only, MCP server is already connected).
-6. **If no Sonilo tools exist at all:** continue to Step 1 (full setup).
+## Path C: API key (CI, containers, or by preference)
 
 ### Step 1: Get an API key
 
-Tell the user:
+Only take this path when Path A does not fit — no browser, a provisioned
+account, CI, or an explicit preference for holding a key. Tell the user:
 
 > Get your Sonilo API key from the dashboard: https://platform.sonilo.com/dashboard/api-keys
 >
 > (Need an account? Sign up there first — self-serve accounts start with a few free generation runs on most endpoints, no card required.)
 >
-> Once you have a key (it looks like `sks_...`), tell me and I'll connect it — don't paste it directly into this chat if you can avoid it; I'll wire it into the MCP server config instead.
+> Once you have a key (it looks like `sk-...`), tell me and I'll connect it — don't paste it directly into this chat if you can avoid it; I'll wire it into the MCP server config instead.
 
 ### Step 2: Connect the MCP server
 
 Once the user has a key, connect the `sonilo` MCP server with it. Prefer the CLI form when the host supports it:
 
 ```bash
-claude mcp add sonilo --env SONILO_API_KEY=sks_... -- uvx sonilo-mcp
+claude mcp add sonilo --env SONILO_API_KEY=sk-... -- uvx sonilo-mcp
 ```
 
 For hosts without that CLI (Claude Desktop, Codex), edit the MCP config directly:
@@ -68,7 +123,7 @@ For hosts without that CLI (Claude Desktop, Codex), edit the MCP config directly
     "sonilo": {
       "command": "uvx",
       "args": ["sonilo-mcp"],
-      "env": { "SONILO_API_KEY": "sks_..." }
+      "env": { "SONILO_API_KEY": "sk-..." }
     }
   }
 }
@@ -82,7 +137,7 @@ command = "uvx"
 args = ["sonilo-mcp"]
 
 [mcp_servers.sonilo.env]
-SONILO_API_KEY = "sks_..."
+SONILO_API_KEY = "sk-..."
 ```
 
 Both require the `uv` package manager (provides `uvx`): `curl -LsSf https://astral.sh/uv/install.sh | sh` if not already installed. After editing a config file directly, tell the user to restart the host app (Claude Desktop/Codex) — a `claude mcp add` in Claude Code takes effect on the next session without a restart.
@@ -92,10 +147,10 @@ Both require the `uv` package manager (provides `uvx`): `curl -LsSf https://astr
 After connecting, call `get_account_services()`:
 
 - **Succeeds:** confirm Sonilo is configured and working. Mention `get_account_services()` also shows what free-trial runs remain per service.
-- **Fails (401):** the key is wrong — point back to the dashboard link in Step 1 and ask for a corrected key, then retry this step.
+- **Fails (401):** the credential is wrong. On this path that means a bad key — point back to the dashboard link in Step 1 and ask for a corrected one. If the user signed in with `sonilo login` instead, the key behind that sign-in has expired or been revoked: `sonilo login` again.
 - **No Sonilo tools appear at all:** the MCP server itself isn't connected — re-check Step 2's config location and confirm the host was restarted/reloaded.
 
-## Path C: Python/JS SDK or CLI (no MCP)
+## Path D: Python/JS SDK or CLI (no MCP)
 
 Not every integration goes through an MCP host. If the user is writing code or scripting from a shell:
 
@@ -106,9 +161,9 @@ pip install sonilo-cli      # Python-distributed CLI
 npm install -g sonilo-cli   # npm-distributed CLI
 ```
 
-Same API key as Path B — get one from https://platform.sonilo.com/dashboard/api-keys and set it as `SONILO_API_KEY` in the environment (both SDKs and both CLIs read it automatically; no MCP config, `claude mcp add`, or plugin install involved). Validate with the SDK's own account call (`client.account.services()` / `sonilo.account.services()`) or `sonilo account` on the CLI.
+Same API key as Path C — get one from https://platform.sonilo.com/dashboard/api-keys and set it as `SONILO_API_KEY` in the environment (both SDKs and both CLIs read it automatically; no MCP config, `claude mcp add`, or plugin install involved). Validate with the SDK's own account call (`client.account.services()` / `sonilo.account.services()`) or `sonilo account` on the CLI.
 
-## Optional Configuration (Path B: local MCP server)
+## Optional Configuration (local MCP server)
 
 Mention these only if relevant to what the user is trying to do — they all have sane defaults:
 
@@ -117,7 +172,7 @@ Mention these only if relevant to what the user is trying to do — they all hav
 | `SONILO_API_URL` | `https://api.sonilo.com` | Only for a non-default deployment. |
 | `SONILO_MCP_BASE_PATH` | `~/Desktop` | Where generated files are saved by default, and the base for relative input paths. Suggest changing it if the user wants output elsewhere. |
 | `SONILO_MCP_ALLOW_ANY_PATH` | `false` | Set `true` only if the user needs to read/write files outside `SONILO_MCP_BASE_PATH` — explain this widens the tool's file-system access before suggesting it. |
-| `TIME_OUT_SECONDS` | `600` | Raise this if the user hits generation timeouts on long videos — note that `get_sfx_task` (see [task-recovery](../task-recovery)) can always recover a timed-out result regardless of this setting. |
+| `TIME_OUT_SECONDS` | `600` | Raise this if the user hits generation timeouts on long videos — note that `get_sfx_task` / `get_generation_task` (see [task-recovery](../task-recovery)) can always recover a timed-out result regardless of this setting. |
 
 ## Safety Rules
 

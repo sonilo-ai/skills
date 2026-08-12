@@ -1,0 +1,43 @@
+name: Validate skills
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # Weekly. The offline checks cannot rot on their own, but the surface this
+    # repo describes lives in other repos: a tool renamed or a parameter added
+    # there goes stale here with no commit to trigger a run.
+    - cron: "0 9 * * 1"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # The offline checks are stdlib-only on purpose: frontmatter, tool names,
+      # parameters, defaults and banned tokens all validate with no install.
+      - name: Validate skills against the recorded tool surface
+        run: python tests/validate.py
+
+      # And this is the check that catches drift originating outside this repo:
+      # install the published server and diff its live tool surface against the
+      # recorded one. A rename or a new parameter fails here first.
+      - name: Install the published sonilo-mcp
+        run: pip install sonilo-mcp
+
+      - name: Fail if the recorded local surface has drifted
+        run: |
+          python tests/validate.py --refresh
+          if ! git diff --quiet tests/tool_surface.json; then
+            echo "::error::sonilo-mcp's tool surface no longer matches tests/tool_surface.json."
+            echo "Run 'python tests/validate.py --refresh' locally, then update the skills that describe what changed."
+            git --no-pager diff tests/tool_surface.json
+            exit 1
+          fi
+          echo "recorded local surface matches the published sonilo-mcp"

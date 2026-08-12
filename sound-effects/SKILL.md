@@ -2,7 +2,7 @@
 name: sound-effects
 description: Generate sound effects using Sonilo. Use when creating SFX from a text description, generating SFX matched to what happens in a video (optionally scripted to specific timed segments), or muxing SFX into a video. Not for music — see the music skill.
 license: MIT
-compatibility: Requires the Sonilo MCP server connected and a Sonilo API key (SONILO_API_KEY).
+compatibility: Requires the Sonilo MCP server connected and Sonilo credentials — either a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
 ---
 
 # Sonilo Sound Effects
@@ -160,7 +160,7 @@ sign-off — failed runs auto-refund, but your own retry is a new charge.
 
 ## Recovering a Timed-Out Call
 
-Every tool here is async on the backend already; a long generation can still exceed `TIME_OUT_SECONDS`. If it does, the error carries a `task_id` — the job keeps running (and is already charged). Call `get_sfx_task(task_id)` later to retrieve the result; see [task-recovery](../task-recovery).
+Every tool here is async on the backend already; a long generation can still exceed `TIME_OUT_SECONDS`. If it does, the error carries a `task_id` — the job keeps running (and is already charged). Call `get_sfx_task(task_id)` — `get_generation_task(task_id)` on the hosted server — later to retrieve the result; see [task-recovery](../task-recovery).
 
 ## Output Files
 

@@ -40,7 +40,7 @@ This installs the same nine skills (`music`, `sound-effects`, `video-to-sound`, 
 | [video-to-sound](./video-to-sound) | Generate music **and** SFX for a video in one balanced, single-charge call (`video_to_sound`, `video_to_video_sound`) |
 | [audio-ducking](./audio-ducking) | Duck a music bed under a voice track (or a video's voice track) automatically (`audio_ducking`) |
 | [dubbing](./dubbing) | Dub a video into other languages with re-voiced speech (`dubbing`) |
-| [task-recovery](./task-recovery) | Recover the result of a timed-out generation using its task id (`get_sfx_task`) |
+| [task-recovery](./task-recovery) | Recover the result of a timed-out generation using its task id (`get_sfx_task`, or `get_generation_task` on the hosted server) |
 | [account](./account) | Check available services, limits, free-trial allowance, and usage history (`get_account_services`, `get_usage`) |
 | [audio-playback](./audio-playback) | Play a local audio file through the system's speakers (`play_audio`) |
 | [setup-api-key](./setup-api-key) | Guide through obtaining a Sonilo API key and connecting the Sonilo MCP server |
@@ -63,13 +63,23 @@ now deprecated in favor of this repo):
 
 Each skill's Quick Start shows every way to call that capability — pick whichever fits how you're working:
 
-- **MCP, local** — the [sonilo-mcp](https://github.com/sonilo-ai/sonilo-mcp) server, connected with an API key:
+- **MCP, local, signed in** — sign in once with either CLI and the [sonilo-mcp](https://github.com/sonilo-ai/sonilo-mcp) server (0.16.0+) reads the same credential, so the host config holds no secret:
 
   ```bash
-  claude mcp add sonilo --env SONILO_API_KEY=sks_... -- uvx sonilo-mcp
+  npm install -g sonilo-cli && sonilo login   # or: pip install sonilo-cli
+  claude mcp add sonilo -- uvx sonilo-mcp     # Claude Code
+  codex mcp add sonilo -- uvx sonilo-mcp      # Codex
   ```
 
-  Get your API key from the [Sonilo dashboard](https://platform.sonilo.com/dashboard/api-keys), or use the `setup-api-key` skill for guided setup. See the [sonilo-mcp README](https://github.com/sonilo-ai/sonilo-mcp) for Claude Desktop / Codex setup and the full environment variable reference (`SONILO_API_URL`, `SONILO_MCP_BASE_PATH`, `SONILO_MCP_ALLOW_ANY_PATH`, `TIME_OUT_SECONDS`).
+  Approving in the browser mints a 90-day key named `cli: <hostname>` in `~/.config/sonilo/credentials.json`; `sonilo whoami` shows what is active and `sonilo logout` revokes it.
+
+- **MCP, local, with a key** — for CI, containers, or if you prefer holding one:
+
+  ```bash
+  claude mcp add sonilo --env SONILO_API_KEY=sk-... -- uvx sonilo-mcp
+  ```
+
+  `SONILO_API_KEY` takes precedence over a sign-in wherever both exist. Get a key from the [Sonilo dashboard](https://platform.sonilo.com/dashboard/api-keys), or use the `setup-api-key` skill for guided setup. See the [sonilo-mcp README](https://github.com/sonilo-ai/sonilo-mcp) for Claude Desktop / Codex setup and the full environment variable reference (`SONILO_API_URL`, `SONILO_MCP_BASE_PATH`, `SONILO_MCP_ALLOW_ANY_PATH`, `TIME_OUT_SECONDS`).
 
 - **MCP, remote (Claude Code only, no API key)** — the [sonilo-claude-plugin](https://github.com/sonilo-ai/sonilo-claude-plugin) connects to a hosted, OAuth-authenticated MCP server (`https://api.sonilo.com/mcp`) instead of running anything locally:
 
@@ -93,7 +103,7 @@ Sonilo also ships official client libraries, independent of MCP:
 | CLI | `pip install sonilo-cli` or `npm install -g sonilo-cli` | same repos, `sonilo-cli` package |
 | Video helpers (local ffmpeg mixing) | `pip install sonilo-video-kit` or `npm install sonilo-video-kit` | same repos, `sonilo-video-kit` package |
 
-Both SDKs read `SONILO_API_KEY` from the environment by default. Each skill's Quick Start includes Python, JavaScript, and (where a command exists) CLI examples alongside the MCP tool call and raw cURL — use whichever matches your integration; they all hit the same underlying API.
+Both SDKs read `SONILO_API_KEY` from the environment by default; both CLIs additionally fall back to a `sonilo login` credential when it is not set. Each skill's Quick Start includes Python, JavaScript, and (where a command exists) CLI examples alongside the MCP tool call and raw cURL — use whichever matches your integration; they all hit the same underlying API.
 
 Not every MCP tool has a 1:1 SDK/CLI equivalent — most notably `audio_ducking` has no dedicated SDK resource or CLI command (see the [audio-ducking](./audio-ducking) skill for the closest equivalents). Where a skill's SDK/CLI coverage differs from its MCP tool, the skill says so explicitly rather than implying full parity.
 

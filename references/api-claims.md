@@ -27,7 +27,7 @@ Every numeric limit and behavior claim used by the skills in this repo, verified
 - [x] Charged up front at submission; **failed generations auto-refunded**. Caller retries = new charge. **No preview/low-cost mode.** Music + SFX = separate task types, separate per-second rates, separate prepay minute pools. `variants_num` scales v2m cost linearly; N>1 never covered by free trial.
 - [x] MCP vs REST — field names + numeric limits match. Three structural differences (⚠️ document, don't claim identity):
   1. MCP input = **`video_url` only**, no file upload
-  2. MCP **always async** — no `mode` param; returns `task_id`, results via `get_generation_task`
+  2. MCP **always async** — no `mode` param; returns `task_id`, results via `get_generation_task` (named `get_sfx_task` on the local server)
   3. MCP `video_to_music` has **no `segments` param** — segmented music via MCP only through section-shaped prompt text (prompt-analysis path)
 - [x] Output = **audio files only** (not stems-in-DAW-sense, not video). v2m: m4a default, `output_format=wav` optional (async-only on REST; always on MCP); preserve_speech adds vocals track + mux; ducking adds ducked music URLs. v2sfx: single file, aac default, wav/mp3/flac optional. Video out = separate `/v1/video-to-video-*` endpoints + corresponding MCP tools.
 - [x] Multi-track input — default ffmpeg stream selection (typically first audio track) for ducking/speech. Wording: "for multi-track videos, the default audio track is used."

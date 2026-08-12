@@ -2,7 +2,7 @@
 name: audio-ducking
 description: Duck a music bed under a voice track using Sonilo — automatically lowers the music wherever the voice speaks and lifts it back in the gaps. Use when mixing a separately-generated or existing music track under narration, dialogue, or a video's own voice track, without manual volume automation.
 license: MIT
-compatibility: Requires the Sonilo MCP server connected and a Sonilo API key (SONILO_API_KEY).
+compatibility: Requires the Sonilo MCP server connected and Sonilo credentials — either a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
 ---
 
 # Sonilo Audio Ducking
@@ -87,7 +87,7 @@ Each input is capped at **360 seconds (6 minutes)** and by the account's upload-
 
 ## Recovering a Timed-Out Call
 
-This tool submits an async task on the backend. If the call times out, the error carries a `task_id` — the job keeps running (already charged). Call `get_sfx_task(task_id)` later; see [task-recovery](../task-recovery).
+This tool submits an async task on the backend. If the call times out, the error carries a `task_id` — the job keeps running (already charged). Call `get_sfx_task(task_id)` later (`get_generation_task(task_id)` on the hosted server); see [task-recovery](../task-recovery).
 
 ## Output Files
 

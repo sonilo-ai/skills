@@ -2,7 +2,7 @@
 name: account
 description: Check the Sonilo account's available services, rate limits, free-trial allowance, and usage/billing history. Use before calling a paid Sonilo tool to confirm it's available and whether free-trial runs remain, or when the user asks about their Sonilo usage, limits, or billing.
 license: MIT
-compatibility: Requires the Sonilo MCP server connected and a Sonilo API key (SONILO_API_KEY).
+compatibility: Requires the Sonilo MCP server connected and Sonilo credentials — either a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
 ---
 
 # Sonilo Account

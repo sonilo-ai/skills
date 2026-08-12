@@ -2,7 +2,7 @@
 name: dubbing
 description: Dub a video into one or more other languages using Sonilo, translating and re-voicing the speech into a new video per language. Use when a user needs a video localized into another language, not just subtitled. Billed per language with zero free trial — confirm language count with the user before calling.
 license: MIT
-compatibility: Requires the Sonilo MCP server connected and a Sonilo API key (SONILO_API_KEY).
+compatibility: Requires the Sonilo MCP server connected and Sonilo credentials — either a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
 ---
 
 # Sonilo Dubbing
@@ -13,7 +13,7 @@ Dub a video into one or more other languages: the speech is translated and re-vo
 
 > ⚠️ **Cost — read before calling:** this is billed **per language**, with **zero free-trial runs** — even a trial account is charged from the very first call, unlike every other Sonilo tool. Requesting four languages costs four times as much as one. Confirm the exact language list with the user before calling; do not guess a long list "to be helpful."
 
-> ⏱ **This call is slow.** It polls for **at least two hours** internally regardless of any shorter `TIME_OUT_SECONDS` — that's the backend's own ceiling for the dubbing pipeline. A call that sits for an hour or more is normal, not a hang. Do not cancel it: the job keeps running and charging either way, and cancelling just loses the easy path to the result (use `get_sfx_task` to recover it instead).
+> ⏱ **This call is slow.** It polls for **at least two hours** internally regardless of any shorter `TIME_OUT_SECONDS` — that's the backend's own ceiling for the dubbing pipeline. A call that sits for an hour or more is normal, not a hang. Do not cancel it: the job keeps running and charging either way, and cancelling just loses the easy path to the result (use `get_sfx_task`, or `get_generation_task` on the hosted server, to recover it instead).
 
 ## Quick Start
 
@@ -103,7 +103,7 @@ curl -X POST "https://api.sonilo.com/v1/dubbing" \
 
 ## Recovering a Timed-Out Call
 
-If the call's own long poll is interrupted (e.g. the host itself times out or the session is closed), the error message — or the task id printed to stderr at submission time — gives you a `task_id`. Call `get_sfx_task(task_id)` to check status and download finished files once ready; see [task-recovery](../task-recovery).
+If the call's own long poll is interrupted (e.g. the host itself times out or the session is closed), the error message — or the task id printed to stderr at submission time — gives you a `task_id`. Call `get_sfx_task(task_id)` — `get_generation_task(task_id)` on the hosted server — to check status and download finished files once ready; see [task-recovery](../task-recovery).
 
 ## Output Files
 
