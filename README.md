@@ -78,7 +78,7 @@ Each skill's Quick Start shows every way to call that capability — pick whiche
   /plugin install sonilo@sonilo
   ```
 
-  You sign in with your Sonilo Platform account on first use — no key to copy or configure. Its tool surface is narrower than the local server's (music and SFX from text/video, ducking, account/usage) — it does not cover every tool these skills document (e.g. video-to-video, video-to-sound, dubbing).
+  You sign in with your Sonilo Platform account on first use — no key to copy or configure. It carries the same tool set as the local server — every tool these skills document (music and SFX from text/video, video-to-video, video-to-sound, dubbing, ducking, account/usage).
 
 - **Python / JavaScript SDK, or the `sonilo` CLI** — see [Client Libraries](#client-libraries) below if you're integrating outside an MCP host entirely.
 
