@@ -2,7 +2,7 @@
 name: video-to-sound
 description: Generate music AND sound effects for a video in a single balanced, single-charge call using Sonilo. Use instead of calling the music and sound-effects skills separately for the same video — the two layers are mixed and ducked against each other by the backend. Returns a mixed audio track, or a new video with it muxed in.
 license: MIT
-compatibility: Requires the Sonilo MCP server connected and a Sonilo API key (SONILO_API_KEY).
+compatibility: Requires the Sonilo MCP server connected and Sonilo credentials — either a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
 ---
 
 # Sonilo Video-to-Sound (Music + SFX Combined)
@@ -101,8 +101,8 @@ Both endpoints are task-based (202 + poll), same as the sound-effects tools — 
 
 | Tool | Description |
 |------|-------------|
-| `video_to_sound(video_path? \| video_url?, music_prompt?, sfx_prompt?, segments?, preserve_speech?, ducking?, output_directory?)` | Generate and mix music + SFX for a video, returns a single **audio** file. |
-| `video_to_video_sound(video_path? \| video_url?, music_prompt?, sfx_prompt?, segments?, preserve_speech?, ducking?, output_directory?)` | Same, but returns a **new `.mp4`** with the mixed soundtrack muxed in. |
+| `video_to_sound(video_path? \| video_url?, music_prompt?, sfx_prompt?, segments?, preserve_speech?, ducking?, output_format?, variants_num?, output_directory?)` | Generate and mix music + SFX for a video, returns a single **audio** file. |
+| `video_to_video_sound(video_path? \| video_url?, music_prompt?, sfx_prompt?, segments?, keep_original_sound?, preserve_speech?, ducking?, variants_num?, output_directory?)` | Same, but returns a **new `.mp4`** with the mixed soundtrack muxed in. **By default the source's own audio is dropped** — see `keep_original_sound`. |
 
 ## Parameters
 
@@ -114,7 +114,10 @@ Both endpoints are task-based (202 + poll), same as the sound-effects tools — 
 | `sfx_prompt` | string | — | Description of the SFX layered over the music (max 2000 chars). Optional. |
 | `segments` | list[dict] | — | Per-segment SFX descriptions — same schema and validation rules as in the [sound-effects](../sound-effects) skill. Max 30 segments. |
 | `preserve_speech` | bool | `false` | Keep the source video's speech audible in the mix. |
-| `ducking` | bool | `true` | Dips the generated music (and SFX bed) under the source speech. Defaults **on** here — pass `false` to opt out. |
+| `ducking` | bool | `false` | Brings the source video's own speech into the mix and dips the generated music under it. **Off by default**: with `ducking` and `preserve_speech` both unset, the result carries the generated music and effects alone and no `music_processed` stem exists. Pass `true` for any video with dialogue or narration that should stay audible. |
+| `keep_original_sound` | bool | `false` | `video_to_video_sound` only. Keeps the **whole** source track (dialogue, room tone, existing effects) with the generated mix over it, rather than replacing it. Add `ducking=true` to dip the mix under the voice instead of a flat blend. Supersedes `preserve_speech`. |
+| `output_format` | string | `wav` | `video_to_sound` only — `video_to_video_sound` always returns an `.mp4`. `wav`, `m4a`, or `mp3` (320 kbps). Sets the combined track's container only; stems keep their own native formats. |
+| `variants_num` | int | `1` | 1–10 distinct mixes in one request, one file each. **Cost scales linearly and any value above 1 is never free-trial covered** — confirm the count with the user before calling. |
 | `output_directory` | string | `SONILO_MCP_BASE_PATH` | Absolute, or relative to the base path. |
 
 ## Prompting
@@ -130,13 +133,14 @@ one balanced call, both crafts apply:
 
 - **Use this instead of chaining `video_to_music` + `video_to_sfx`.** The two layers are balanced against each other by the backend (so the SFX doesn't fight the score), and it's one charge, not two.
 - Both `music_prompt` and `sfx_prompt` are optional — you can leave both unset and let Sonilo interpret the whole scene, or set just one to steer that layer while leaving the other automatic.
-- `ducking` defaults to **on** here (unlike the standalone `audio_ducking` tool, which you'd have to call explicitly) — leave it on for any video with dialogue or narration so the soundtrack doesn't drown it out.
+- **`ducking` is off by default — turn it on for anything with a voice.** Left off, the source speech is not in the mix at all: the output is generated music and effects only. That is the right default for a silent or music-only clip and the wrong one for a talking head, so check the source audio before calling (see the pre-flight reference) rather than after the user tells you the narration is gone.
+- **For `video_to_video_sound`, the source audio is dropped unless you say otherwise.** `keep_original_sound=true` keeps the whole original track under the generated mix; `preserve_speech=true` keeps only the isolated speech. If a user reports "my dialogue disappeared", this is the fix.
 - Only the **combined mixed result** is saved. The individual music/SFX/processed stems exist in the task body on the backend but are deliberately not downloaded — four files per call would bury the one the user actually wants. If stems are needed, call the REST API directly and inspect the task body.
 - Want the video back with the soundtrack baked in? Use `video_to_video_sound` instead of `video_to_sound`.
 
 ## Recovering a Timed-Out Call
 
-Both tools are async; on timeout the error carries a `task_id` and the job keeps running (already charged). Call `get_sfx_task(task_id)` later — see [task-recovery](../task-recovery).
+Both tools are async; on timeout the error carries a `task_id` and the job keeps running (already charged). Call `get_sfx_task(task_id)`, or `get_generation_task(task_id)` on the hosted server, later — see [task-recovery](../task-recovery).
 
 ## Output Files
 

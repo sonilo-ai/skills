@@ -65,7 +65,7 @@ except `preserve_speech`'s speech+music mux.
 ## Step 4 — API vs MCP differences
 
 - The hosted MCP surface takes **`video_url` only** and is **always async**:
-  tools return a `task_id`; fetch results with `get_generation_task`. (The
+  tools return a `task_id`; fetch results with `get_generation_task` (`get_sfx_task` on the local server). (The
   local `sonilo-mcp` package also accepts a `video_path` and uploads for you.)
 - MCP `video_to_music` has **no `segments` parameter** — segmented music via
   MCP works only by describing sections inside the prompt text (see

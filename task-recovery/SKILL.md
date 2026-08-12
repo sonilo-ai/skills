@@ -2,7 +2,7 @@
 name: task-recovery
 description: Recover the result of a timed-out Sonilo generation call using its task_id. Use whenever text_to_sfx, video_to_sfx, video_to_video_music, video_to_video_sfx, video_to_sound, video_to_video_sound, audio_ducking, dubbing, or video_to_music(preserve_speech=true) times out or its call was interrupted — the generation already ran (and was already charged) and its result is still retrievable.
 license: MIT
-compatibility: Requires the Sonilo MCP server connected and a Sonilo API key (SONILO_API_KEY).
+compatibility: Requires the Sonilo MCP server connected and Sonilo credentials — either a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
 ---
 
 # Sonilo Task Recovery
@@ -20,6 +20,12 @@ Every Sonilo generation that runs asynchronously on the backend (SFX, ducking, v
 ```
 get_sfx_task(task_id="a1b2c3d4-...")
 ```
+
+**The tool has two names.** The local `sonilo-mcp` server calls it
+`get_sfx_task`; the hosted OAuth server (the `sonilo-claude-plugin` path) calls
+it `get_generation_task(task_id)`. Same job, same arguments — call whichever one
+the connected server actually exposes rather than assuming, since only one of
+the two exists in any given session.
 
 ### Python (`pip install sonilo`)
 
