@@ -11,11 +11,11 @@ Guide the user through connecting to Sonilo. There are several ways in — pick 
 
 | Path | Needs an API key? | Best for |
 |---|---|---|
-| **A. Remote OAuth MCP plugin** (`sonilo-claude-plugin`) | No — OAuth sign-in | Claude Code users who just want to try it fast. Narrower tool coverage (music/SFX from text or video, ducking, account/usage) — no video-to-video, video-to-sound, or dubbing. |
-| **B. Local MCP server** (`sonilo-mcp`, this repo's skills) | Yes | Any MCP host (Claude Code, Claude Desktop, Codex). Full tool coverage — every skill in this repo. |
+| **A. Remote OAuth MCP plugin** (`sonilo-claude-plugin`) | No — OAuth sign-in | Claude Code users who want the fastest setup, no key to create or store. Full tool coverage — same tools as Path B. |
+| **B. Local MCP server** (`sonilo-mcp`, this repo's skills) | Yes | Any MCP host (Claude Code, Claude Desktop, Codex), or users who prefer holding a key. Full tool coverage — every skill in this repo. |
 | **C. Python/JS SDK or CLI, no MCP** | Yes | Building an app or script directly against the API, or scripting from a shell — not using an MCP-capable agent at all. |
 
-If the user is in Claude Code and just wants to test Sonilo with the least friction, lead with **Path A**. If they need the full tool set, or aren't on Claude Code, use **Path B**. If they're not working through an agent at all, point them at **Path C** and stop — the rest of this skill (API key, MCP config) doesn't apply.
+If the user is in Claude Code and doesn't need to hold a key, lead with **Path A** — it has the full tool set. If they aren't on Claude Code, or prefer holding a key, use **Path B**. If they're not working through an agent at all, point them at **Path C** and stop — the rest of this skill (API key, MCP config) doesn't apply.
 
 ## Path A: Remote OAuth plugin (Claude Code only, no API key)
 
@@ -27,7 +27,7 @@ claude
 
 The first Sonilo tool call opens the browser to sign in to a **Sonilo Platform** account (platform.sonilo.com — separate from a consumer sonilo.com account) and approve access. Claude Code stores the resulting token per-user in the OS keychain; nothing to copy, paste, or configure. Review or disconnect anytime from `/mcp`.
 
-This connects to a single hosted endpoint (`https://api.sonilo.com/mcp`, OAuth 2.1 + PKCE) with a smaller capability set than the local server — don't promise the user tools this path doesn't have (video-to-video music/SFX, video-to-sound, dubbing). If they need those, switch to Path B.
+This connects to a single hosted endpoint (`https://api.sonilo.com/mcp`, OAuth 2.1 + PKCE) that carries the same tool set as the local server (Path B): music/SFX from text or video, video-to-video music/SFX, video-to-sound, video-to-video-sound, dubbing, audio ducking, and account/usage. Path B is still the better fit for MCP hosts other than Claude Code, or for users who prefer holding and managing their own key.
 
 ## Path B: Local MCP server with an API key
 
