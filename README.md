@@ -19,7 +19,7 @@ npx skills add sonilo-ai/skills
 Or install a single skill:
 
 ```bash
-npx skills add sonilo-ai/skills/music
+npx skills add sonilo-ai/skills/video-to-music
 ```
 
 ### Option 2: Claude Code plugin
@@ -29,21 +29,34 @@ npx skills add sonilo-ai/skills/music
 /plugin install skills@sonilo-skills
 ```
 
-This installs the same nine skills (`music`, `sound-effects`, `video-to-sound`, `audio-ducking`, `dubbing`, `task-recovery`, `account`, `audio-playback`, `setup-api-key`) as a single Claude Code plugin, discovered directly from their existing top-level directories — no separate copy to keep in sync. It's a skills-only plugin (no MCP server, no bundled tools); see [Configuration](#configuration) below for how to connect the Sonilo MCP server itself.
+This installs the same eleven skills (`video-to-music`, `text-to-music`, `video-to-sfx`, `text-to-sfx`, `video-to-sound`, `audio-ducking`, `auto-dubbing`, `task-recovery`, `account`, `audio-playback`, `setup-api-key`) as a single Claude Code plugin, discovered directly from their existing top-level directories — no separate copy to keep in sync. It's a skills-only plugin (no MCP server, no bundled tools); see [Configuration](#configuration) below for how to connect the Sonilo MCP server itself.
 
 ## Available Skills
 
 | Skill | Description |
 |-------|-------------|
-| [music](./music) | Generate music from text or score it to a video's pacing and emotion (`text_to_music`, `video_to_music`, `video_to_video_music`) |
-| [sound-effects](./sound-effects) | Generate sound effects from text or match them to a video, with optional timed segments (`text_to_sfx`, `video_to_sfx`, `video_to_video_sfx`) |
+| [video-to-music](./video-to-music) | Score a video with original music matched to its pacing and emotion (`video_to_music`, `video_to_video_music`) |
+| [text-to-music](./text-to-music) | Generate music from a text prompt alone, no video (`text_to_music`) |
+| [video-to-sfx](./video-to-sfx) | Generate sound effects matched to a video, with optional timed segments (`video_to_sfx`, `video_to_video_sfx`) |
+| [text-to-sfx](./text-to-sfx) | Generate one sound effect from a text description alone (`text_to_sfx`) |
 | [video-to-sound](./video-to-sound) | Generate music **and** SFX for a video in one balanced, single-charge call (`video_to_sound`, `video_to_video_sound`) |
 | [audio-ducking](./audio-ducking) | Duck a music bed under a voice track (or a video's voice track) automatically (`audio_ducking`) |
-| [dubbing](./dubbing) | Dub a video into other languages with re-voiced speech (`dubbing`) |
+| [auto-dubbing](./auto-dubbing) | Dub a video into other languages with re-voiced speech (`dubbing`) |
 | [task-recovery](./task-recovery) | Recover the result of a timed-out generation using its task id (`get_sfx_task`, or `get_generation_task` on the hosted server) |
 | [account](./account) | Check available services, limits, free-trial allowance, and usage history (`get_account_services`, `get_usage`) |
 | [audio-playback](./audio-playback) | Play a local audio file through the system's speakers (`play_audio`) |
 | [setup-api-key](./setup-api-key) | Guide through obtaining a Sonilo API key and connecting the Sonilo MCP server |
+
+### Renamed in v2
+
+Each skill is now named for the tool it documents. If you installed an earlier
+version, reinstall under the new name — the old ones no longer exist:
+
+| Was | Now |
+|---|---|
+| `music` | `text-to-music` (text prompt only) and `video-to-music` (scoring a video) |
+| `sound-effects` | `text-to-sfx` (text prompt only) and `video-to-sfx` (matched to a video) |
+| `dubbing` | `auto-dubbing` |
 
 ### Prompting guidance
 
@@ -55,8 +68,8 @@ cut. That guidance is folded into the skills themselves (ported from
 now deprecated in favor of this repo):
 
 - [references/preflight.md](./references/preflight.md) — pre-flight before any paid call: inspect the video, duration caps, credits, verification
-- [music/prompting.md](./music/prompting.md) — style-prompt craft for `video_to_music`
-- [sound-effects/prompting.md](./sound-effects/prompting.md) — action map → segments craft for `video_to_sfx`
+- [references/music-prompting.md](./references/music-prompting.md) — style-prompt craft for `video_to_music`
+- [references/sfx-prompting.md](./references/sfx-prompting.md) — action map → segments craft for `video_to_sfx`
 - [references/api-claims.md](./references/api-claims.md) — verified API behavior the guidance relies on
 
 ## Configuration

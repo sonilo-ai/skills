@@ -1,5 +1,5 @@
 ---
-name: dubbing
+name: auto-dubbing
 description: Dub a video into one or more other languages using Sonilo, translating and re-voicing the speech into a new video per language. Use when a user needs a video localized into another language, not just subtitled. Billed per language with zero free trial — confirm language count with the user before calling.
 license: MIT
 compatibility: Requires the Sonilo MCP server connected and Sonilo credentials — either a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
@@ -97,7 +97,7 @@ curl -X POST "https://api.sonilo.com/v1/dubbing" \
 ## Workflow Tips
 
 - **Always ask which language(s)** if the user hasn't said, rather than relying on the `["zh_cn", "es", "fr"]` default — that default silently bills for three languages.
-- **This is not the [music](../music) or [sound-effects](../sound-effects) skills.** It doesn't touch music/SFX at all — it translates and re-voices existing speech.
+- **This is not the music or SFX skills** ([text-to-music](../text-to-music), [video-to-music](../video-to-music), [text-to-sfx](../text-to-sfx), [video-to-sfx](../video-to-sfx)). It doesn't touch music/SFX at all — it translates and re-voices existing speech.
 - **Set expectations on time.** Tell the user up front this can take up to ~2 hours and that walking away is fine — the result is recoverable afterward.
 - Because there is no free trial here at all, if the account is self-serve and hasn't added a payment method, warn the user before calling rather than letting it fail with `trial_exhausted` (which doesn't even apply — dubbing bills immediately regardless of trial status). Check `get_account_services` (see [account](../account)) if unsure about billing status.
 

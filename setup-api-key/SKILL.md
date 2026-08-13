@@ -68,8 +68,10 @@ For Claude Desktop, the whole config is:
 }
 ```
 
-Both need the `uv` package manager (provides `uvx`):
-`curl -LsSf https://astral.sh/uv/install.sh | sh`.
+Both need the `uv` package manager (provides `uvx`): install it with
+`brew install uv` (macOS), `pipx install uv` / `pip install uv`, or
+`winget install --id=astral-sh.uv` (Windows) — other methods at
+https://docs.astral.sh/uv/getting-started/installation/.
 
 Worth telling the user up front:
 
@@ -140,7 +142,7 @@ args = ["sonilo-mcp"]
 SONILO_API_KEY = "sk-..."
 ```
 
-Both require the `uv` package manager (provides `uvx`): `curl -LsSf https://astral.sh/uv/install.sh | sh` if not already installed. After editing a config file directly, tell the user to restart the host app (Claude Desktop/Codex) — a `claude mcp add` in Claude Code takes effect on the next session without a restart.
+Both require the `uv` package manager (provides `uvx`) — if not already installed, use `brew install uv`, `pipx install uv` / `pip install uv`, or `winget install --id=astral-sh.uv` (see https://docs.astral.sh/uv/getting-started/installation/ for other methods). After editing a config file directly, tell the user to restart the host app (Claude Desktop/Codex) — a `claude mcp add` in Claude Code takes effect on the next session without a restart.
 
 ### Step 3: Validate
 

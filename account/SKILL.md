@@ -91,7 +91,7 @@ curl "https://api.sonilo.com/v1/account/usage?days=7" -H "Authorization: Bearer 
 ## Workflow Tips
 
 - **Check before you generate.** Before calling any paid tool (`text_to_music`, `video_to_music`, `text_to_sfx`, `video_to_sfx`, `video_to_video_music`, `video_to_video_sfx`, `video_to_sound`, `video_to_video_sound`, `dubbing`, `audio_ducking`), call `get_account_services()` if you're unsure whether the account has free runs left. If `trial[service].remaining` is `0`, tell the user their free trial for that service is spent and that continuing needs a payment method — don't just attempt the call and surface a raw 402.
-- **`dubbing` is billed from the first call, always** — even a trial account with `trial` present will show no entry (or a zero allowance) for it. See the [dubbing](../dubbing) skill's cost warning.
+- **`dubbing` is billed from the first call, always** — even a trial account with `trial` present will show no entry (or a zero allowance) for it. See the [auto-dubbing](../auto-dubbing) skill's cost warning.
 - **Usage reconciliation:** if a generation timed out or failed, use `get_usage` to confirm whether the backend actually completed (and charged) it, rather than assuming nothing happened.
 - Rate-limited (`429`)? `get_account_services()` reports `rpm_limit` and `concurrency_limit` so you can tell the user what ceiling they hit.
 

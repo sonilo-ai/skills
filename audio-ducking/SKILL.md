@@ -81,7 +81,7 @@ Each input is capped at **360 seconds (6 minutes)** and by the account's upload-
 
 ## Workflow Tips
 
-- **This tool takes two already-existing tracks** — it does not generate music or SFX itself. If you need to generate the music bed first, use the [music](../music) skill (`text_to_music`/`video_to_music`), then feed the result in here as `music_path`.
+- **This tool takes two already-existing tracks** — it does not generate music or SFX itself. If you need to generate the music bed first, use the [text-to-music](../text-to-music) or [video-to-music](../video-to-music) skill (`text_to_music`/`video_to_music`), then feed the result in here as `music_path`.
 - **The voice input can be a video.** If the user hands you a talking-head clip or an interview and a separate music file, pass the video straight through as `voice_path` — Sonilo extracts its audio track, ducks the music under it, and re-muxes the ducked mix back into a new video automatically.
 - **Prefer [video-to-sound](../video-to-sound) or `video_to_music(ducking=true)`** when the music itself is also being *generated* for that same video — those tools duck internally as part of generation, so you don't need a separate ducking call. Reach for `audio_ducking` specifically when the music track is fixed/external and you just need the mix.
 
