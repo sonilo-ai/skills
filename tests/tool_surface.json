@@ -196,6 +196,53 @@
       "input_file_path"
     ]
   },
+  "cli": {
+    "_comment": [
+      "Subcommands the published CLIs expose, from `sonilo --help` on both",
+      "npm sonilo-cli and PyPI sonilo-cli (they are kept identical).",
+      "Recorded because this repo repeatedly claimed a command did not exist",
+      "after it shipped: six 'no CLI command for video_to_video_*' lines",
+      "survived a whole repo restructure. A claim about the CLI is now",
+      "checkable, the same way a claim about a tool already was."
+    ],
+    "commands": [
+      "login",
+      "logout",
+      "whoami",
+      "account",
+      "usage",
+      "text-to-music",
+      "video-to-music",
+      "text-to-sfx",
+      "video-to-sfx",
+      "video-to-sound",
+      "video-to-video-music",
+      "video-to-video-sfx",
+      "video-to-video-sound",
+      "dubbing",
+      "tasks"
+    ],
+    "tool_to_command": {
+      "text_to_music": "text-to-music",
+      "video_to_music": "video-to-music",
+      "text_to_sfx": "text-to-sfx",
+      "video_to_sfx": "video-to-sfx",
+      "video_to_sound": "video-to-sound",
+      "video_to_video_music": "video-to-video-music",
+      "video_to_video_sfx": "video-to-video-sfx",
+      "video_to_video_sound": "video-to-video-sound",
+      "dubbing": "dubbing",
+      "get_sfx_task": "tasks",
+      "get_generation_task": "tasks",
+      "get_account_services": "account",
+      "get_usage": "usage"
+    },
+    "no_command": {
+      "_comment": "Tools with genuinely no CLI equivalent. Saying so is allowed only for these.",
+      "audio_ducking": true,
+      "play_audio": true
+    }
+  },
   "defaults": {
     "_comment": "Schema defaults, read from the installed server's inputSchema. Only booleans are machine-checkable today; a docs table stating the opposite fails the build.",
     "preserve_speech": "false",
