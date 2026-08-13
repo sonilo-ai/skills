@@ -2,7 +2,8 @@
 name: account
 description: Check the Sonilo account's available services, rate limits, free-trial allowance, and usage/billing history. Use before calling a paid Sonilo tool to confirm it's available and whether free-trial runs remain, or when the user asks about their Sonilo usage, limits, or billing.
 license: MIT
-compatibility: Requires the Sonilo MCP server connected and Sonilo credentials — either a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+compatibility: Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+allowed-tools: Bash, Read, Write, mcp__sonilo__*
 ---
 
 # Sonilo Account
@@ -10,6 +11,15 @@ compatibility: Requires the Sonilo MCP server connected and Sonilo credentials �
 Two free, read-only tools for checking what a Sonilo account can do and how much it's used. Neither makes a charge.
 
 > **Setup:** See the [setup-api-key](../setup-api-key) skill.
+
+## Transport: MCP or CLI
+
+Pick one at the start of the session and stay on it. Do not mix the two inside
+a single job, and do not announce the choice.
+
+1. **Sonilo MCP tools visible in this session** (`get_account_services` and friends) — use them. This is the preferred path: it needs no shell, and it is the only one that survives a very long generation.
+2. **No Sonilo MCP tools, but `sonilo whoami` exits 0** — use the CLI commands below. Same API, same account, same credential file.
+3. **Neither** — stop and run the [setup-api-key](../setup-api-key) skill. Do not call `api.sonilo.com` with curl to work around it; both transports handle uploads, polling and retries that a bare request does not.
 
 ## Quick Start
 

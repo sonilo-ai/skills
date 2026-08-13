@@ -220,6 +220,7 @@ def check_cli_claims(surface: dict, docs: dict[Path, str]) -> None:
     commands = set(cli["commands"])
     genuinely_absent = {k for k in cli["no_command"] if not k.startswith("_")}
     tool_to_command = cli["tool_to_command"]
+    flag_surface = cli.get("flags", {})
 
     for path, text in docs.items():
         rel = path.relative_to(ROOT)
@@ -235,6 +236,20 @@ def check_cli_claims(surface: dict, docs: dict[Path, str]) -> None:
                 fail(str(rel), f"claims `{tool}` has no CLI command, but "
                                f"`sonilo {tool_to_command[tool]}` exists")
 
+        # 1b. A skill that declares the CLI as a transport must have one. The
+        #     frontmatter promise and the tool-to-command map have to agree, or
+        #     an agent follows the routing block into a command that does not
+        #     exist for this tool.
+        if path.name == "SKILL.md" and "sonilo whoami" in text:
+            shows_a_command = re.search(
+                r"(?:^|\$ |`|>\s)\s*sonilo (?!whoami|login|logout)[a-z][a-z-]{2,}",
+                text, re.M)
+            if not shows_a_command:
+                absent = sorted(t for t in genuinely_absent if re.search(rf"\b{t}\b", text))
+                because = f" — {', '.join(absent)} has no CLI command" if absent else ""
+                fail(str(rel), "routes to the CLI but shows no `sonilo` command to "
+                               f"run{because}")
+
         # 2. Any `sonilo <subcommand>` shown must be a real subcommand. Only
         #    shell invocations count: `from sonilo import Sonilo` is Python, and
         #    matching it would report `import` as a missing subcommand in every
@@ -242,9 +257,29 @@ def check_cli_claims(surface: dict, docs: dict[Path, str]) -> None:
         for line in text.splitlines():
             if "import" in line:
                 continue
-            m = re.search(r"(?:^|\$ |`)sonilo ([a-z][a-z-]{2,})\b", line)
-            if m and m.group(1) not in commands:
-                fail(str(rel), f"shows `sonilo {m.group(1)}`, which is not a CLI subcommand")
+            # Leading `> `, indentation and list markers are all normal in
+            # these files; a command inside a blockquote is still a command.
+            m = re.search(r"(?:^|\$ |`|>\s|^\s*[-*]\s)\s*sonilo ([a-z][a-z-]{2,})\b",
+                          line.lstrip("> ").rstrip() if line.lstrip().startswith(">") else line)
+            if not m:
+                continue
+            sub = m.group(1)
+            if sub not in commands:
+                fail(str(rel), f"shows `sonilo {sub}`, which is not a CLI subcommand")
+                continue
+
+            # 3. And the options passed to it must exist. A subcommand that is
+            #    real with a flag that is not reads exactly as authoritative,
+            #    and `--async` on `sonilo dubbing` got written here that way:
+            #    the command has always been async, so the flag never existed.
+            known = set(flag_surface.get("global", []))
+            known |= set(flag_surface.get("per_command", {}).get(sub, []))
+            if not known:
+                continue
+            for flag in re.findall(r"(?<![\w-])(--[a-z][a-z-]+)", line[m.end():]):
+                if flag not in known:
+                    fail(str(rel), f"shows `sonilo {sub} {flag}`, which is not one "
+                                   f"of its options")
 
 
 def check_banned_tokens(surface: dict, docs: dict[Path, str]) -> None:

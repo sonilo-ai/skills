@@ -2,7 +2,8 @@
 name: auto-dubbing
 description: Dub a video into one or more other languages using Sonilo, translating and re-voicing the speech into a new video per language. Use when a user needs a video localized into another language, not just subtitled. Billed per language with zero free trial — confirm language count with the user before calling.
 license: MIT
-compatibility: Requires the Sonilo MCP server connected and Sonilo credentials — either a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+compatibility: Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+allowed-tools: Bash, Read, Write, mcp__sonilo__*
 ---
 
 # Sonilo Dubbing
@@ -14,6 +15,30 @@ Dub a video into one or more other languages: the speech is translated and re-vo
 > ⚠️ **Cost — read before calling:** this is billed **per language**, with **zero free-trial runs** — even a trial account is charged from the very first call, unlike every other Sonilo tool. Requesting four languages costs four times as much as one. Confirm the exact language list with the user before calling; do not guess a long list "to be helpful."
 
 > ⏱ **This call is slow.** It polls for **at least two hours** internally regardless of any shorter `TIME_OUT_SECONDS` — that's the backend's own ceiling for the dubbing pipeline. A call that sits for an hour or more is normal, not a hang. Do not cancel it: the job keeps running and charging either way, and cancelling just loses the easy path to the result (use `get_sfx_task`, or `get_generation_task` on the hosted server, to recover it instead).
+
+## Transport: MCP or CLI
+
+Pick one at the start of the session and stay on it. Do not mix the two inside
+a single job, and do not announce the choice.
+
+1. **Sonilo MCP tools visible in this session** (`dubbing` and friends) — use them. This is the preferred path: it needs no shell, and it is the only one that survives a very long generation.
+2. **No Sonilo MCP tools, but `sonilo whoami` exits 0** — use the CLI commands below. Same API, same account, same credential file.
+3. **Neither** — stop and run the [setup-api-key](../setup-api-key) skill. Do not call `api.sonilo.com` with curl to work around it; both transports handle uploads, polling and retries that a bare request does not.
+
+> ⏱ **On the CLI path this call cannot be one command.** The backend polls for
+> up to two hours, while a host's shell tool is capped far below that (ten
+> minutes in Claude Code), so `sonilo dubbing` run in the foreground will be
+> killed with the job still running and already charged. Submit it and poll
+> separately instead:
+>
+> ```bash
+> # --timeout is the CLI's own wait, not the job's: it returns early and the
+> # task keeps running. The id comes from the "Submitted task ..." line.
+> sonilo dubbing --video-url https://example.com/clip.mp4 --languages es,fr --timeout 300000
+> sonilo tasks wait <task-id> --timeout 300000   # repeat until it finishes
+> ```
+>
+> The MCP path has no such limit and is the better transport for dubbing.
 
 ## Quick Start
 

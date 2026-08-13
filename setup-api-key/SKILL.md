@@ -26,11 +26,14 @@ Choosing:
 
 Do this before changing anything — the answer is often "nothing to do".
 
-1. Check whether a `sonilo` MCP server is already connected (any Sonilo tool, e.g. `text_to_music` or `get_account_services`, is available to call).
-2. If tools exist, call the free, read-only `get_account_services()`.
-3. **Succeeds:** Sonilo is configured and working. Say so and stop. Ask only whether they want to rotate credentials.
+There are two transports, and either one is enough. Probe both before
+concluding that nothing is set up.
+
+1. **MCP:** is a `sonilo` MCP server connected (any Sonilo tool, e.g. `text_to_music` or `get_account_services`, available to call)? If so, call the free, read-only `get_account_services()`.
+2. **CLI:** if there are no Sonilo tools, run `sonilo whoami`. Exit code 0 means the CLI is installed and signed in, and the skills can drive it directly. Confirm with `sonilo account`, which is the same free call.
+3. **Either one succeeds:** Sonilo is configured and working. Say so and stop. Ask only whether they want to rotate credentials.
 4. **Fails with 401:** authentication is stale, not missing. If they signed in with `sonilo login`, the key may have expired (90 days) or been revoked — `sonilo login` again fixes it. Otherwise the key is wrong: continue at Path C.
-5. **No Sonilo tools at all:** nothing is connected — pick a path above and run it.
+5. **Neither responds:** nothing is connected — pick a path below and run it. MCP is the better default (it needs no shell, and it is the only transport that survives a dubbing job's two-hour poll), but a CLI that is installed and signed in is a complete setup on its own; do not make someone configure MCP they will not use.
 
 Never print, quote, or echo a key or the contents of the credential file. If you must refer to one, redact it.
 

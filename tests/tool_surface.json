@@ -242,6 +242,141 @@
     "no_command": {
       "_comment": "Tools with genuinely no CLI equivalent. Saying so is allowed only for these.",
       "play_audio": true
+    },
+    "flags": {
+      "_comment": [
+        "Options per subcommand, parsed from `sonilo --help` on the published CLI.",
+        "Recorded after an `--async` flag that does not exist was written into a",
+        "skill: subcommands were checkable, the flags passed to them were not.",
+        "Includes the few documented inline in the Commands block (usage --days,",
+        "tasks wait --poll-interval/--timeout) as well as the per-command sections."
+      ],
+      "global": [
+        "--api-key",
+        "--help",
+        "--version"
+      ],
+      "per_command": {
+        "account": [],
+        "audio-ducking": [
+          "--music",
+          "--music-url",
+          "--output",
+          "--voice",
+          "--voice-url"
+        ],
+        "dubbing": [
+          "--ducking",
+          "--languages",
+          "--output",
+          "--timeout",
+          "--video",
+          "--video-url"
+        ],
+        "login": [
+          "--api-base",
+          "--force",
+          "--no-browser"
+        ],
+        "logout": [
+          "--api-base",
+          "--local-only"
+        ],
+        "tasks": [
+          "--poll-interval",
+          "--timeout"
+        ],
+        "text-to-music": [
+          "--async",
+          "--duration",
+          "--format",
+          "--output",
+          "--prompt",
+          "--segments",
+          "--variants"
+        ],
+        "text-to-sfx": [
+          "--duration",
+          "--format",
+          "--output",
+          "--prompt"
+        ],
+        "usage": [
+          "--days"
+        ],
+        "video-to-music": [
+          "--async",
+          "--format",
+          "--isolate-vocals",
+          "--output",
+          "--preserve-speech",
+          "--prompt",
+          "--prompt-influence",
+          "--segments",
+          "--variants",
+          "--video",
+          "--video-url"
+        ],
+        "video-to-sfx": [
+          "--format",
+          "--output",
+          "--prompt",
+          "--segments",
+          "--video",
+          "--video-url"
+        ],
+        "video-to-sound": [
+          "--ducking",
+          "--keep-original-sound",
+          "--music-prompt",
+          "--no-ducking",
+          "--output",
+          "--preserve-speech",
+          "--segments",
+          "--sfx-prompt",
+          "--stem",
+          "--variants",
+          "--video",
+          "--video-url"
+        ],
+        "video-to-video-music": [
+          "--ducking",
+          "--isolate-vocals",
+          "--keep-original-sound",
+          "--no-ducking",
+          "--output",
+          "--preserve-speech",
+          "--prompt",
+          "--prompt-influence",
+          "--variants",
+          "--video",
+          "--video-url"
+        ],
+        "video-to-video-sfx": [
+          "--output",
+          "--prompt",
+          "--segments",
+          "--video",
+          "--video-url"
+        ],
+        "video-to-video-sound": [
+          "--ducking",
+          "--keep-original-sound",
+          "--music-prompt",
+          "--no-ducking",
+          "--output",
+          "--preserve-speech",
+          "--segments",
+          "--sfx-prompt",
+          "--stem",
+          "--variants",
+          "--video",
+          "--video-url"
+        ],
+        "whoami": [
+          "--api-base"
+        ]
+      }
     }
   },
   "defaults": {

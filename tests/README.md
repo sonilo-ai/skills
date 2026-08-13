@@ -21,7 +21,7 @@ python tests/validate.py --refresh   # needs `pip install sonilo-mcp`; re-reads
 | Tool names | A tool that exists on neither server; naming `get_sfx_task` without `get_generation_task` (or the reverse) — the two servers use different names for the same tool, so a doc that knows only one breaks for half the users |
 | Parameters | A parameter passed in an example that the tool does not have; a behaviour- or cost-changing parameter missing from the skill that covers it (`must_document`) |
 | Defaults | A documented default that contradicts the server's schema |
-| CLI claims | A "no CLI command for X" line that is no longer true, and any `sonilo <subcommand>` that does not exist |
+| CLI claims | A "no CLI command for X" line that is no longer true; any `sonilo <subcommand>` that does not exist; any **option** passed to one that does not exist; a skill that routes to the CLI without showing a command to run |
 | Banned tokens | Strings that were true once — see `banned_tokens` in `tool_surface.json` |
 
 ## Keeping it honest
@@ -35,3 +35,10 @@ out the hard way.
 
 When a check needs to change, change the check — and add the case that would
 have caught the bug you just fixed by hand.
+
+The flag check exists for that reason: writing the transport blocks, an
+`--async` flag was invented for `sonilo dubbing`, which has always been async
+and never had one. The subcommand was real, so nothing failed. Its first
+negative test then found two bugs in the checks themselves — the command anchor
+skipped anything inside a blockquote, and the transport check was satisfied by
+any tool name the prose happened to mention. Run the negative test.
