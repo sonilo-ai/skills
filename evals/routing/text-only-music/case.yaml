@@ -1,0 +1,35 @@
+schema_version: "1.1"
+name: routing-text-only-music
+description: >-
+  Music with no video must load text-to-music. This is the half of the old
+  `music` skill that the split was meant to make cheap — routing here should not
+  drag in the video-scoring surface.
+tags: [routing, music]
+
+execution:
+  prompt: |
+    I need a 10-second lo-fi chill beat for my podcast intro. There's no video
+    involved, it's an audio-only show. How would you go about it?
+  allowed_tools: ["Skill"]
+  max_turns: 4
+  timeout_seconds: 120
+
+runs: 3
+
+graders:
+  - type: tool_used
+    name: loads-text-to-music
+    tool: Skill
+    input_match: "skills:text-to-music"
+    min: 1
+    arm: with-only
+  - type: tool_used
+    name: avoids-video-to-music
+    tool: Skill
+    input_match: "skills:video-to-music"
+    max: 0
+    arm: with-only
+
+expected_outcome: >-
+  Loads text-to-music and asks for or uses an explicit duration, without loading
+  video-to-music.

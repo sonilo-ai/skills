@@ -1,0 +1,43 @@
+schema_version: "1.1"
+name: routing-video-scoring
+description: >-
+  A finished video that needs a soundtrack must load video-to-music. Before the
+  v2 split this was the `music` skill, which also carried text_to_music — the
+  split only pays off if the video case still routes to the video skill.
+tags: [routing, music]
+
+execution:
+  # Deliberately phrased the way a user would, with no skill name and no "which
+  # skill would you pick" framing: naming the choice is what we are measuring.
+  prompt: |
+    I've got a finished 30-second product trailer at ~/Desktop/trailer.mp4.
+    I'd like an original soundtrack that follows the cut. Where do we start?
+  # The allowlist is the money guard: Sonilo's generation tools are `mcp__*`,
+  # which the runner gates behind an explicit --allow-tools grant, and they are
+  # not listed here either. A routing eval must never be able to spend credits.
+  allowed_tools: ["Skill"]
+  max_turns: 4
+  timeout_seconds: 120
+
+runs: 3
+
+graders:
+  # `arm: with-only` because the baseline arm has no Sonilo skills installed at
+  # all — grading "did it load video-to-music" there is a guaranteed fail that
+  # measures nothing.
+  - type: tool_used
+    name: loads-video-to-music
+    tool: Skill
+    input_match: "skills:video-to-music"
+    min: 1
+    arm: with-only
+  - type: tool_used
+    name: avoids-text-to-music
+    tool: Skill
+    input_match: "skills:text-to-music"
+    max: 0
+    arm: with-only
+
+expected_outcome: >-
+  Loads video-to-music and describes scoring the existing cut, without loading
+  text-to-music.

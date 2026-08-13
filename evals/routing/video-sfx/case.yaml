@@ -1,0 +1,34 @@
+schema_version: "1.1"
+name: routing-video-sfx
+description: >-
+  Sound design matched to footage must load video-to-sfx, the video half of the
+  old `sound-effects` skill.
+tags: [routing, sfx]
+
+execution:
+  prompt: |
+    I have a silent fight-scene clip that needs footsteps, punches and impacts
+    landing on the action. What's the approach?
+  allowed_tools: ["Skill"]
+  max_turns: 4
+  timeout_seconds: 120
+
+runs: 3
+
+graders:
+  - type: tool_used
+    name: loads-video-to-sfx
+    tool: Skill
+    input_match: "skills:video-to-sfx"
+    min: 1
+    arm: with-only
+  - type: tool_used
+    name: avoids-text-to-sfx
+    tool: Skill
+    input_match: "skills:text-to-sfx"
+    max: 0
+    arm: with-only
+
+expected_outcome: >-
+  Loads video-to-sfx and raises timed `segments` for pinning sounds to moments,
+  without loading text-to-sfx.

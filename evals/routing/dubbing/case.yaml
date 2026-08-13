@@ -1,0 +1,29 @@
+schema_version: "1.1"
+name: routing-dubbing
+description: >-
+  Localizing a video must load auto-dubbing. The capability keeps the tool name
+  `dubbing` while the skill is now `auto-dubbing`, so this case guards the
+  rename specifically.
+tags: [routing, dubbing]
+
+execution:
+  prompt: |
+    We need our product demo video localized into Spanish and Japanese, with the
+    speech actually re-voiced rather than subtitled. Can you help?
+  allowed_tools: ["Skill"]
+  max_turns: 4
+  timeout_seconds: 120
+
+runs: 3
+
+graders:
+  - type: tool_used
+    name: loads-auto-dubbing
+    tool: Skill
+    input_match: "skills:auto-dubbing"
+    min: 1
+    arm: with-only
+
+expected_outcome: >-
+  Loads auto-dubbing and surfaces the per-language, no-free-trial billing before
+  suggesting a call.

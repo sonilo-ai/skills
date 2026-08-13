@@ -1,0 +1,44 @@
+schema_version: "1.1"
+name: routing-music-and-sfx
+description: >-
+  The hardest case, and the one the v2 split put at risk. Asking for music *and*
+  SFX on one video must load video-to-sound — a single balanced, single-charge
+  call — rather than reaching for the two newly separated skills and billing the
+  user twice.
+tags: [routing, music, sfx, cost]
+
+execution:
+  prompt: |
+    My video needs a full soundtrack: background music and sound effects both.
+    What's the most efficient way to do that?
+  allowed_tools: ["Skill"]
+  max_turns: 4
+  timeout_seconds: 120
+
+runs: 3
+
+graders:
+  - type: tool_used
+    name: loads-video-to-sound
+    tool: Skill
+    input_match: "skills:video-to-sound"
+    min: 1
+    arm: with-only
+  # Loading either half separately is the double-charge failure this case exists
+  # to catch.
+  - type: tool_used
+    name: avoids-video-to-music
+    tool: Skill
+    input_match: "skills:video-to-music"
+    max: 0
+    arm: with-only
+  - type: tool_used
+    name: avoids-video-to-sfx
+    tool: Skill
+    input_match: "skills:video-to-sfx"
+    max: 0
+    arm: with-only
+
+expected_outcome: >-
+  Loads video-to-sound only, and explains that it bills once for both layers
+  instead of chaining two generations.
