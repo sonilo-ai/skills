@@ -3,13 +3,13 @@
 **Scope: video inputs** (`video_to_music`, `video_to_sfx`, `video_to_sound`).
 `text_to_music` / `text_to_sfx` have no video to inspect — skip Steps 1–2;
 credits (Step 3) and verification still apply. Prompt craft for text inputs
-lives in [music/prompting.md](../music/prompting.md).
+lives in [music-prompting.md](./music-prompting.md).
 
 A structured brief before generating is the highest-leverage step for output
 quality — and what makes a brief work is **consistency with the video**:
 same subject, same structure, same emphasized moments. This is the
-pre-flight; the actual prompt craft lives in [music prompting](../music/prompting.md)
-and [SFX prompting](../sound-effects/prompting.md).
+pre-flight; the actual prompt craft lives in [music prompting](./music-prompting.md)
+and [SFX prompting](./sfx-prompting.md).
 
 ## Step 1 — Inspect the video
 
@@ -69,13 +69,13 @@ except `preserve_speech`'s speech+music mux.
   local `sonilo-mcp` package also accepts a `video_path` and uploads for you.)
 - MCP `video_to_music` has **no `segments` parameter** — segmented music via
   MCP works only by describing sections inside the prompt text (see
-  [music prompting](../music/prompting.md)).
+  [music prompting](./music-prompting.md)).
 - Field names and limits are otherwise identical across REST and MCP.
 
 ## Step 5 — Route
 
-- Music brief and prompt → [music prompting](../music/prompting.md)
-- SFX action map and segments → [SFX prompting](../sound-effects/prompting.md)
+- Music brief and prompt → [music prompting](./music-prompting.md)
+- SFX action map and segments → [SFX prompting](./sfx-prompting.md)
 
 ## Verification (both endpoints)
 

@@ -1,0 +1,149 @@
+---
+name: video-to-music
+description: Score a video with original music using Sonilo — the model watches the cut and matches pacing, motion, and emotion, returning either the audio or a new video with the score muxed in. Use when the user has a finished video that needs a soundtrack. Every track is licensed and cleared for commercial use. For music with no video, use the text-to-music skill.
+license: MIT
+compatibility: Requires the Sonilo MCP server connected and Sonilo credentials — either a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+---
+
+# Sonilo Video-to-Music
+
+Hand Sonilo a finished video and it composes an original score to the cut —
+pacing, motion, and emotion matched, with transitions and beat drops aligned to
+the edit, at exactly the video's length. This is Sonilo's flagship capability.
+Every track is licensed (music licensed via Shutterstock) and cleared for
+commercial use on social, brand content, and advertising.
+
+> **Setup:** See the [setup-api-key](../setup-api-key) skill to connect the Sonilo MCP server and authenticate — `sonilo login` (no key) or `SONILO_API_KEY`.
+
+> ⚠️ **Cost:** every tool below makes an API call that may incur charges. Only call it when the user has actually asked for a generation. Check `get_account_services` (see the [account](../account) skill) if you're unsure whether free-trial runs remain.
+
+## Quick Start
+
+### MCP tool call (recommended)
+
+```
+video_to_music(
+    video_path="~/Desktop/trailer.mp4",
+    prompt="Build suspense, then resolve with a warm cinematic finish"
+)
+```
+
+Saves the generated file(s) to `SONILO_MCP_BASE_PATH` (`~/Desktop` by default) and returns the saved path(s) as text.
+
+### Python (`pip install sonilo`)
+
+```python
+from sonilo import Sonilo
+
+client = Sonilo()  # reads SONILO_API_KEY
+
+score = client.video_to_music.generate(video="trailer.mp4", prompt="Build suspense, then resolve with a warm cinematic finish")
+score.save("score.m4a")
+
+# video_to_video_music has no CLI command — this is the only non-MCP way to get the muxed video back
+video = client.video_to_video_music.generate(video="trailer.mp4", prompt="cinematic, uplifting")
+video.save("scored.mp4")
+```
+
+`preserve_speech=True` on `video_to_music` requires the async path — use `generate_async()` instead of `generate()` to get the extra `vocals`/`mux`/`ducked` outputs; see [sonilo-python's README](https://github.com/sonilo-ai/sonilo-python#preserve-speech-async) for the full pattern.
+
+### JavaScript / TypeScript (`npm install sonilo`)
+
+```ts
+import { SoniloClient } from "sonilo";
+
+const client = new SoniloClient(); // reads SONILO_API_KEY
+
+const score = await client.videoToMusic.generate({
+  video: "./trailer.mp4",
+  prompt: "Build suspense, then resolve with a warm cinematic finish",
+});
+
+// video_to_video_music has no CLI command — this is the only non-MCP way to get the muxed video back
+const video = await client.videoToVideoMusic.generate({
+  video: "./trailer.mp4",
+  prompt: "cinematic, uplifting",
+});
+```
+
+`preserveSpeech: true` on `videoToMusic` requires the async path — use `.submit()` + `client.tasks.wait()` instead of `.generate()`; see [sonilo-js's README](https://github.com/sonilo-ai/sonilo-js/tree/main/packages/sonilo#preserve-speech-async) for the full pattern.
+
+### CLI (`npm install -g sonilo-cli` or `pip install sonilo-cli`)
+
+```bash
+sonilo video-to-music --video trailer.mp4 --prompt "Build suspense, then resolve with a warm cinematic finish" --output score.m4a
+```
+
+`--format wav`, `--preserve-speech`, and `--isolate-vocals` each switch `video-to-music` to the async submit-and-poll path. **There is no CLI command for `video_to_video_music`** (the video-to-video variants aren't exposed by either CLI) — use the Python/JS SDK or the MCP tool for that.
+
+### cURL (raw REST API, no MCP host)
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/video-to-music" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  -F "video=@trailer.mp4" \
+  -F "prompt=Build suspense, then resolve with a warm cinematic finish" \
+  --output score.m4a
+```
+
+`video_to_music` also accepts a `video_url` form field instead of an uploaded file — pass one or the other, never both.
+
+## Tools
+
+| Tool | Description |
+|------|-------------|
+| `video_to_music(video_path? \| video_url?, prompt?, preserve_speech?, output_format?, ducking?, variants_num?, prompt_influence?, output_directory?)` | Score a video: matches pacing/motion/emotion, matches the video's duration exactly. Returns audio only (the video itself is not muxed). |
+| `video_to_video_music(video_path? \| video_url?, prompt?, segments?, keep_original_sound?, ducking?, preserve_speech?, variants_num?, prompt_influence?, output_directory?)` | Same scoring, but returns a **new `.mp4`** with the music already muxed in. **By default the source's own audio is dropped** — see `keep_original_sound`. |
+
+## Parameters
+
+| Parameter | Type | Default | Notes |
+|-----------|------|---------|-------|
+| `prompt` | string | — | Optional style hint. Omit to let the footage lead entirely. |
+| `video_path` | string | — | Absolute path, or relative to `SONILO_MCP_BASE_PATH`. `.mp4/.mov/.avi/.wmv/.webm/.mkv`. Max **360s (6 min)**, subject to the account's upload-size cap (typically 300 MB). |
+| `video_url` | string | — | HTTPS URL to a video file. Exactly one of `video_path`/`video_url`. |
+| `preserve_speech` | bool | `false` | Keeps the source speech audible. On `video_to_music`, also returns a `vocals` speech stem and a ready-to-use `mux` (speech+music mixed) — this makes the call run asynchronously (submit + poll) instead of streaming, so it takes a bit longer but the tool still waits for completion. |
+| `ducking` | bool \| null | server default ON for `video_to_music`, `false` for `video_to_video_music` | Dips the generated music under the source voice. Free, best-effort. On `video_to_video_music` it only does anything alongside `keep_original_sound` or `preserve_speech` — with neither, there is no source voice left in the output to duck under. |
+| `keep_original_sound` | bool | `false` | `video_to_video_music` only. **This is the parameter to reach for when the result sounds wrong.** By default the returned `.mp4` carries the generated music *alone* — the source's dialogue, room tone, and effects are gone. Set `true` to keep the whole source track with the music mixed under it, and add `ducking=true` to dip the music under the voice rather than mixing it flat. `keep_original_sound` supersedes `preserve_speech`. |
+| `variants_num` | int | `1` | 1–10. Generates that many distinct creative directions in one request — different takes, not re-renders of one. **Cost scales linearly with the count, and any value above 1 is never covered by the free trial**, so confirm the number with the user first. Above 1 writes one file per variant and forces the backend's async mode. |
+| `prompt_influence` | float \| null | API default `0.5` | 0–1: how strictly the music follows your prompt versus what the video itself suggests. Lower lets the footage lead, higher enforces the brief. **Free**, and it does not change the mode or the number of files — omit it unless the user asks for stricter or looser adherence. |
+| `output_format` | string | `m4a` | `video_to_music` only — `video_to_video_music` has no such param and always outputs a muxed `.mp4`. `m4a` or `wav`. `wav` (and `preserve_speech`/`ducking`) triggers the backend's async mode internally. |
+| `output_directory` | string | `SONILO_MCP_BASE_PATH` | Absolute, or relative to the base path. |
+
+## Prompting
+
+No prompt is required — the model reads the cut. A short structured brief adds
+what the video can't carry: your intent — genre, the moment that must hit, the
+sounds that must not appear.
+
+Before a paid call: probe the exact duration and existing audio, respect the
+**360 s** cap (over = 422 reject, never truncated), and get sign-off — failed
+runs auto-refund, but your own retry is a new charge. Write the brief first,
+generate once, iterate on the prompt, not on rerolls.
+
+- Full pre-flight (inspect the video, caps, credits, verification): [references/preflight.md](../references/preflight.md)
+- Style-prompt craft (audio brief, genre/energy wording, `preserve_speech`, segmented music): [references/music-prompting.md](../references/music-prompting.md)
+
+## Workflow Tips
+
+- **Prompting:** a style hint (e.g. "cinematic, uplifting") steers the result, but the prompt is optional — Sonilo already reads the footage.
+- **`preserve_speech` for talking-head or narrated video:** if the source has dialogue/voiceover the user wants kept, set `preserve_speech=true`. Behavior differs by tool: on `video_to_music` you get the music, the isolated speech stem, *and* a ready-mixed combined file (the mux) — use the mux directly rather than re-mixing yourself. On `video_to_video_music` there's no separate stem or mux file; it just keeps the source speech audible in the single muxed output video.
+- **Want the video back with the score baked in?** Use `video_to_video_music` instead of `video_to_music` — same inputs, but the output is a new `.mp4`, not just audio. **Warn the user that the source audio is dropped by default**: if their video has dialogue, narration, or effects they expect to hear, pass `keep_original_sound=true` (add `ducking=true` to keep the voice on top), or `preserve_speech=true` for the isolated speech only. A "the music is there but my voiceover vanished" report is always this.
+- **Several takes in one go:** `variants_num=3` returns three distinct directions for one request instead of three re-rolls. It costs 3×, and it is never free-trial covered — say the price before calling.
+- **Duration:** always matched to the source video automatically — don't ask for it.
+- **Need SFX too?** To generate music **and** sound effects for the same video in one balanced, single-charge call, use [video-to-sound](../video-to-sound) rather than calling this and [video-to-sfx](../video-to-sfx) separately.
+- **Content restriction:** prompts cannot reference specific artists, bands, or copyrighted lyrics.
+
+## Recovering a Timed-Out Call
+
+`video_to_music` (without any of `preserve_speech`/`ducking`/`output_format="wav"`) streams its result in one call. Any variant that triggers the backend's async mode — and `video_to_video_music`, which is always async — can time out on a very long `TIME_OUT_SECONDS`. If it does, the error message includes a `task_id`; the generation keeps running (and is already charged) on the backend. Call `get_sfx_task(task_id)` — `get_generation_task(task_id)` on the hosted server — to retrieve the result once ready; see the [task-recovery](../task-recovery) skill.
+
+## Output Files
+
+- `video_to_music`: `.m4a` by default (`.wav` if requested), named from the prompt (slugified) or `sonilo-<timestamp>.m4a`. Multiple parallel streams get a `-<index>` suffix.
+- `video_to_music(preserve_speech=true)`: also saves `<base>-vocals.<ext>` (isolated speech) and `<base>-mux.<ext>` (speech+music combined — the one to actually use).
+- `video_to_video_music`: a single `.mp4` with the score muxed in.
+
+## Error Handling
+
+Common errors: `401` invalid key, `402` insufficient balance / trial exhausted, `413` file too large, `422` invalid parameters (e.g. video over the 360 s cap), `429` rate limit. See the [account](../account) skill to check trial/usage before a call, and the sonilo-mcp README's error table for exact recovery steps.

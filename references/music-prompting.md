@@ -42,7 +42,7 @@ moments the creator cared about. Don't discard it; re-extract from it:
 This reverse-derivation beats writing a music description from scratch — it
 inherits the video's structure for free. One guardrail: the rendered pixels
 still outrank the prompt. Where the render deviates from what was asked,
-brief against what's on screen (see the [pre-flight](../references/preflight.md)).
+brief against what's on screen (see the [pre-flight](./preflight.md)).
 
 ## Writing the prompt
 

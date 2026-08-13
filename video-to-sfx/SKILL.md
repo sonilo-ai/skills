@@ -1,13 +1,16 @@
 ---
-name: sound-effects
-description: Generate sound effects using Sonilo. Use when creating SFX from a text description, generating SFX matched to what happens in a video (optionally scripted to specific timed segments), or muxing SFX into a video. Not for music — see the music skill.
+name: video-to-sfx
+description: Generate sound effects matched to a video using Sonilo — footsteps, impacts, ambience, foley — optionally scripted to specific timed segments, returning either the audio or a new video with the SFX muxed in. Use when the user has footage that needs sound design. For SFX from a text description alone, use the text-to-sfx skill; for music, use video-to-music.
 license: MIT
 compatibility: Requires the Sonilo MCP server connected and Sonilo credentials — either a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
 ---
 
-# Sonilo Sound Effects
+# Sonilo Video-to-SFX
 
-Generate sound effects from a text description, or hand Sonilo a video and it generates SFX matching what it sees — footsteps, impacts, ambience, UI sounds, whatever the scene calls for. All generation runs as an async task on the backend; the tools poll internally and hand back the saved file.
+Hand Sonilo a video and it generates sound effects matching what it sees —
+footsteps, impacts, ambience, UI sounds, whatever the scene calls for — or pin
+specific sounds to specific moments with `segments`. Generation runs as an async
+task on the backend; the tools poll internally and hand back the saved file.
 
 > **Setup:** See the [setup-api-key](../setup-api-key) skill.
 
@@ -16,13 +19,6 @@ Generate sound effects from a text description, or hand Sonilo a video and it ge
 ## Quick Start
 
 ### MCP tool call (recommended)
-
-```
-text_to_sfx(
-    prompt="Thunder rumbling in the distance with light rain",
-    duration=6
-)
-```
 
 ```
 video_to_sfx(
@@ -37,9 +33,6 @@ video_to_sfx(
 from sonilo import Sonilo
 
 client = Sonilo()  # reads SONILO_API_KEY
-
-sfx = client.text_to_sfx.generate(prompt="Thunder rumbling in the distance with light rain", duration=6)
-sfx.save("thunder.m4a")
 
 foley = client.video_to_sfx.generate(video="action-scene.mp4", prompt="Footsteps on gravel, distant traffic, a door slam")
 foley.save("foley.wav")
@@ -56,11 +49,6 @@ import { SoniloClient } from "sonilo";
 
 const client = new SoniloClient(); // reads SONILO_API_KEY
 
-const sfx = await client.textToSfx.generate({
-  prompt: "Thunder rumbling in the distance with light rain",
-  duration: 6,
-});
-
 const foley = await client.videoToSfx.generate({
   video: "./action-scene.mp4",
   prompt: "Footsteps on gravel, distant traffic, a door slam",
@@ -76,45 +64,35 @@ const video = await client.videoToVideoSfx.generate({
 ### CLI (`npm install -g sonilo-cli` or `pip install sonilo-cli`)
 
 ```bash
-sonilo text-to-sfx --prompt "Thunder rumbling in the distance with light rain" --duration 6
 sonilo video-to-sfx --video action-scene.mp4 --output foley.wav
 ```
 
-Both are always async under the hood — the CLI submits and polls for you. `--format` accepts `wav|mp3|aac|flac`. **There is no CLI command for `video_to_video_sfx`** (the video-to-video variants aren't exposed by either CLI) — use the Python/JS SDK or the MCP tool for that.
+Always async under the hood — the CLI submits and polls for you. `--format` accepts `wav|mp3|aac|flac`. **There is no CLI command for `video_to_video_sfx`** (the video-to-video variants aren't exposed by either CLI) — use the Python/JS SDK or the MCP tool for that.
 
 ### cURL (raw REST API, no MCP host)
-
-```bash
-curl -X POST "https://api.sonilo.com/v1/text-to-sfx" \
-  -H "Authorization: Bearer $SONILO_API_KEY" \
-  --data-urlencode "prompt=Thunder rumbling in the distance with light rain" \
-  --data-urlencode "duration=6"
-# -> {"task_id": "..."}  poll GET /v1/tasks/{task_id} until status is succeeded/failed
-```
 
 ```bash
 curl -X POST "https://api.sonilo.com/v1/video-to-sfx" \
   -H "Authorization: Bearer $SONILO_API_KEY" \
   -F "video=@action-scene.mp4" \
   -F "prompt=Footsteps on gravel, distant traffic, a door slam"
+# -> {"task_id": "..."}  poll GET /v1/tasks/{task_id} until status is succeeded/failed
 ```
 
-Every SFX call is task-based: the endpoint returns `{"task_id": ...}` (HTTP 202), and the result is fetched from `GET /v1/tasks/{task_id}` once `status` is terminal. The MCP tools do this polling for you and return the saved path directly — you only see the `task_id` if the call times out (see [task-recovery](../task-recovery)).
+Every call is task-based: the endpoint returns `{"task_id": ...}` (HTTP 202), and the result is fetched from `GET /v1/tasks/{task_id}` once `status` is terminal. The MCP tools do this polling for you and return the saved path directly — you only see the `task_id` if the call times out (see [task-recovery](../task-recovery)).
 
 ## Tools
 
 | Tool | Description |
 |------|-------------|
-| `text_to_sfx(prompt, duration, audio_format?, output_directory?)` | Generate one SFX clip from a text description only. |
 | `video_to_sfx(video_path? \| video_url?, prompt?, segments?, audio_format?, output_directory?)` | Generate SFX matched to a video. Returns **audio only** (not the source video). |
-| `video_to_video_sfx(video_path? \| video_url?, prompt?, segments?, output_directory?)` | Same as `video_to_sfx`, but returns a **new `.mp4`** with the SFX muxed in. |
+| `video_to_video_sfx(video_path? \| video_url?, prompt?, segments?, output_directory?)` | Same, but returns a **new `.mp4`** with the SFX muxed in. |
 
 ## Parameters
 
 | Parameter | Type | Default | Notes |
 |-----------|------|---------|-------|
-| `prompt` | string | — | Required for `text_to_sfx` (1–2000 chars). Overall description for the video tools (optional, max 2000 chars) — omit it to let Sonilo interpret the video on its own. |
-| `duration` | int | — | `text_to_sfx` only. 1–180 seconds. |
+| `prompt` | string | — | Optional overall description (max 2000 chars) — omit it to let Sonilo interpret the video on its own. |
 | `video_path` | string | — | `.mp4/.mov/.webm/.m4v/.gif` (gif must be animated) — a narrower set than the music tools. Max **180s (3 min)**, subject to the account's upload-size cap. |
 | `video_url` | string | — | HTTPS/HTTP URL to a video. Exactly one of `video_path`/`video_url`. |
 | `segments` | list[dict] | — | Script SFX to specific time ranges: `[{"start": float, "end": float, "prompt": str}, ...]`. See rules below. Max 30 segments. |
@@ -134,29 +112,24 @@ Validated by the backend before any charge — an invalid list is rejected with 
 
 ## Prompting
 
-Two different situations:
-
-- **`video_to_sfx`** — no prompt required; the model reads the cut. Quality
-  comes from a time-segmented action map: what is on screen, what it's made
-  of, what it does, second by second. The footage is the source of truth.
-- **`text_to_sfx`** — the prompt IS the input. The same materials vocabulary
-  and sound-bundle thinking applies (see [prompting.md](./prompting.md));
-  there is no footage to map, so describe the action and materials directly.
+No prompt is required — the model reads the cut. Quality comes from a
+time-segmented action map: what is on screen, what it's made of, what it does,
+second by second. The footage is the source of truth.
 
 Before a paid call: probe the exact duration and existing audio, respect the
-**180 s** `video_to_sfx` cap (over = 422 reject, never truncated), and get
-sign-off — failed runs auto-refund, but your own retry is a new charge.
+**180 s** cap (over = 422 reject, never truncated), and get sign-off — failed
+runs auto-refund, but your own retry is a new charge.
 
 - Full pre-flight (inspect the video, caps, credits, verification): [references/preflight.md](../references/preflight.md)
-- Action-map craft (scene bed, sound bundles, materials vocabulary, segment rules): [prompting.md](./prompting.md)
+- Action-map craft (scene bed, sound bundles, materials vocabulary, segment rules): [references/sfx-prompting.md](../references/sfx-prompting.md)
 
 ## Workflow Tips
 
-- **Text-only SFX** (`text_to_sfx`) is for a single clip with no video context — a UI chime, a whoosh, a foley element you'll layer yourself.
-- **Video-driven SFX** (`video_to_sfx` / `video_to_video_sfx`) is for matching sound design to an actual scene. Leave `prompt`/`segments` unset to let Sonilo read the whole video and decide; use `segments` when you need specific sounds pinned to specific moments (e.g. a punch landing at 2.3s, a door slam at 5.0s).
+- **Leave `prompt`/`segments` unset** to let Sonilo read the whole video and decide; use `segments` when you need specific sounds pinned to specific moments (e.g. a punch landing at 2.3s, a door slam at 5.0s).
 - **Want the video back with SFX baked in?** Use `video_to_video_sfx` instead of `video_to_sfx`.
-- **Prompting:** be specific and combine elements — "Heavy rain on a tin roof" beats "Rain"; "Cinematic braam, horror" or "8-bit retro jump sound" for stylized cues.
-- **Don't confuse this with music.** For a background score or soundtrack, use the [music](../music) skill instead. To generate both music and SFX together in one balanced, single-charge call, use [video-to-sound](../video-to-sound).
+- **Prompting:** be specific and combine elements — "Heavy rain on a tin roof" beats "Rain".
+- **Don't confuse this with music.** For a background score or soundtrack, use [video-to-music](../video-to-music) instead. To generate both music and SFX together in one balanced, single-charge call, use [video-to-sound](../video-to-sound).
+- **No footage?** [text-to-sfx](../text-to-sfx) generates a single clip from a description alone.
 
 ## Recovering a Timed-Out Call
 
@@ -164,7 +137,7 @@ Every tool here is async on the backend already; a long generation can still exc
 
 ## Output Files
 
-- `text_to_sfx` / `video_to_sfx`: saved in the requested `audio_format` (`.wav`/`.mp3`/`.flac`, or `.m4a` for the `aac` default), named from the prompt (slugified) or `sfx-<first 8 chars of the task id>`.
+- `video_to_sfx`: saved in the requested `audio_format` (`.wav`/`.mp3`/`.flac`, or `.m4a` for the `aac` default), named from the prompt (slugified) or `sfx-<first 8 chars of the task id>`.
 - `video_to_video_sfx`: a single `.mp4` with the SFX muxed in.
 
 ## Error Handling

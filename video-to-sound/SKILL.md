@@ -112,7 +112,7 @@ Both endpoints are task-based (202 + poll), same as the sound-effects tools — 
 | `video_url` | string | — | HTTPS/HTTP URL. Exactly one of `video_path`/`video_url`. |
 | `music_prompt` | string | — | Style hint for the music bed (max 2000 chars). Optional — omit to let Sonilo decide. |
 | `sfx_prompt` | string | — | Description of the SFX layered over the music (max 2000 chars). Optional. |
-| `segments` | list[dict] | — | Per-segment SFX descriptions — same schema and validation rules as in the [sound-effects](../sound-effects) skill. Max 30 segments. |
+| `segments` | list[dict] | — | Per-segment SFX descriptions — same schema and validation rules as in the [video-to-sfx](../video-to-sfx) skill. Max 30 segments. |
 | `preserve_speech` | bool | `false` | Keep the source video's speech audible in the mix. |
 | `ducking` | bool | `false` | Brings the source video's own speech into the mix and dips the generated music under it. **Off by default**: with `ducking` and `preserve_speech` both unset, the result carries the generated music and effects alone and no `music_processed` stem exists. Pass `true` for any video with dialogue or narration that should stay audible. |
 | `keep_original_sound` | bool | `false` | `video_to_video_sound` only. Keeps the **whole** source track (dialogue, room tone, existing effects) with the generated mix over it, rather than replacing it. Add `ducking=true` to dip the mix under the voice instead of a flat blend. Supersedes `preserve_speech`. |
@@ -127,7 +127,7 @@ adds your intent on top. Since this endpoint generates music **and** SFX in
 one balanced call, both crafts apply:
 
 - Pre-flight (inspect the video, caps, credits, verification): [references/preflight.md](../references/preflight.md)
-- Music brief craft: [music/prompting.md](../music/prompting.md) · SFX action-map craft: [sound-effects/prompting.md](../sound-effects/prompting.md)
+- Music brief craft: [references/music-prompting.md](../references/music-prompting.md) · SFX action-map craft: [references/sfx-prompting.md](../references/sfx-prompting.md)
 
 ## Workflow Tips
 
