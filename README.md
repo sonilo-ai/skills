@@ -126,7 +126,20 @@ Tools marked with a cost warning make an API call that may incur charges. Self-s
 
 ## Evaluations
 
-Not yet included in this repo. Contributions welcome — the intent is trigger evals (does the right skill fire for the right query) and functional evals (does the tool call produce correct output) per skill.
+[`evals/`](./evals) holds five trigger evals — does the right skill fire for the
+right query — covering the routing decisions the v2 split put at risk, including
+the combined music+SFX request that must reach `video-to-sound` rather than
+billing twice for the two separate skills.
+
+```bash
+claude plugin eval skills@sonilo-skills
+```
+
+`claude plugin eval` is in early access and does not run yet; the cases are
+schema-valid and their assumptions verified headlessly. See
+[evals/README.md](./evals/README.md) for what was checked and how. Functional
+evals — does the call produce correct audio — are still open; contributions
+welcome.
 
 ## License
 
