@@ -2,7 +2,8 @@
 name: text-to-sfx
 description: Generate a sound effect from a text description using Sonilo — a UI chime, a whoosh, an impact, ambience, a stylized cue — when there is no video to match. Use when the user describes the sound they want in words and gives a duration. For SFX matched to footage, use the video-to-sfx skill; for music, use text-to-music.
 license: MIT
-compatibility: Requires the Sonilo MCP server connected and Sonilo credentials — either a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+compatibility: Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+allowed-tools: Bash, Read, Write, mcp__sonilo__*
 ---
 
 # Sonilo Text-to-SFX
@@ -17,6 +18,15 @@ the saved file.
 > ⚠️ **Cost:** this tool makes an API call that may incur charges. Only call it when explicitly requested.
 
 > **Matching sound to footage instead?** Use [video-to-sfx](../video-to-sfx) — it reads the cut and can pin sounds to specific moments, which a text prompt cannot do.
+
+## Transport: MCP or CLI
+
+Pick one at the start of the session and stay on it. Do not mix the two inside
+a single job, and do not announce the choice.
+
+1. **Sonilo MCP tools visible in this session** (`text_to_sfx` and friends) — use them. This is the preferred path: it needs no shell, and it is the only one that survives a very long generation.
+2. **No Sonilo MCP tools, but `sonilo whoami` exits 0** — use the CLI commands below. Same API, same account, same credential file.
+3. **Neither** — stop and run the [setup-api-key](../setup-api-key) skill. Do not call `api.sonilo.com` with curl to work around it; both transports handle uploads, polling and retries that a bare request does not.
 
 ## Quick Start
 

@@ -2,7 +2,8 @@
 name: task-recovery
 description: Recover the result of a timed-out Sonilo generation call using its task_id. Use whenever text_to_sfx, video_to_sfx, video_to_video_music, video_to_video_sfx, video_to_sound, video_to_video_sound, audio_ducking, dubbing, or video_to_music(preserve_speech=true) times out or its call was interrupted — the generation already ran (and was already charged) and its result is still retrievable.
 license: MIT
-compatibility: Requires the Sonilo MCP server connected and Sonilo credentials — either a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+compatibility: Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+allowed-tools: Bash, Read, Write, mcp__sonilo__*
 ---
 
 # Sonilo Task Recovery
@@ -12,6 +13,15 @@ Every Sonilo generation that runs asynchronously on the backend (SFX, ducking, v
 > **Setup:** See the [setup-api-key](../setup-api-key) skill.
 
 > This tool is a safety net, not something to call speculatively. Only use it when you actually have a `task_id` — from a timeout error message, or from the `[sonilo-mcp] task submitted: <id>` line a host prints to stderr the moment a task is submitted (this survives even a cancelled call).
+
+## Transport: MCP or CLI
+
+Pick one at the start of the session and stay on it. Do not mix the two inside
+a single job, and do not announce the choice.
+
+1. **Sonilo MCP tools visible in this session** (`get_sfx_task` and friends) — use them. This is the preferred path: it needs no shell, and it is the only one that survives a very long generation.
+2. **No Sonilo MCP tools, but `sonilo whoami` exits 0** — use the CLI commands below. Same API, same account, same credential file.
+3. **Neither** — stop and run the [setup-api-key](../setup-api-key) skill. Do not call `api.sonilo.com` with curl to work around it; both transports handle uploads, polling and retries that a bare request does not.
 
 ## Quick Start
 
