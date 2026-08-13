@@ -219,6 +219,7 @@
       "video-to-video-music",
       "video-to-video-sfx",
       "video-to-video-sound",
+      "audio-ducking",
       "dubbing",
       "tasks"
     ],
@@ -231,6 +232,7 @@
       "video_to_video_music": "video-to-video-music",
       "video_to_video_sfx": "video-to-video-sfx",
       "video_to_video_sound": "video-to-video-sound",
+      "audio_ducking": "audio-ducking",
       "dubbing": "dubbing",
       "get_sfx_task": "tasks",
       "get_generation_task": "tasks",
@@ -239,7 +241,6 @@
     },
     "no_command": {
       "_comment": "Tools with genuinely no CLI equivalent. Saying so is allowed only for these.",
-      "audio_ducking": true,
       "play_audio": true
     }
   },
