@@ -118,7 +118,7 @@ Sonilo also ships official client libraries, independent of MCP:
 
 Both SDKs read `SONILO_API_KEY` from the environment by default; both CLIs additionally fall back to a `sonilo login` credential when it is not set. Each skill's Quick Start includes Python, JavaScript, and (where a command exists) CLI examples alongside the MCP tool call and raw cURL — use whichever matches your integration; they all hit the same underlying API.
 
-Not every MCP tool has a 1:1 SDK/CLI equivalent — most notably `audio_ducking` has no dedicated SDK resource or CLI command (see the [audio-ducking](./audio-ducking) skill for the closest equivalents). Where a skill's SDK/CLI coverage differs from its MCP tool, the skill says so explicitly rather than implying full parity.
+Every generation tool has a 1:1 SDK resource and CLI command (`audio_ducking`, the last holdout, gained both in Python SDK 0.13 / JS SDK 0.14, with the CLI command in PyPI `sonilo-cli` 0.12 / npm `sonilo-cli` 0.13). The one deliberate exception is `play_audio`, which just plays a local file — MCP-only by nature. Where a skill's SDK/CLI coverage differs from its MCP tool in any other way, the skill says so explicitly rather than implying full parity.
 
 ## Billing
 

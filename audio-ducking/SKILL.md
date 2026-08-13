@@ -24,30 +24,45 @@ audio_ducking(
 )
 ```
 
-### Python / JavaScript — no dedicated SDK method
+### Python (`pip install "sonilo>=0.13"`)
 
-Unlike every other tool in this repo, `audio_ducking` has **no dedicated resource** in either official SDK (no `client.audio_ducking` in Python, no `client.audioDucking` in JS) and **no CLI command**. Reach for one of these instead:
+```python
+from sonilo import Sonilo
 
-- **`sonilo-video-kit`'s `duck_music_under_speech()` / `duckMusicUnderSpeech()`** — the closest equivalent, but a different shape: it takes a video plus already-generated audio *bytes* (not two file paths/URLs) and calls this same ducking API internally, then re-muxes the result into a new video. See [sonilo-video-kit (Python)](https://github.com/sonilo-ai/sonilo-python/tree/main/sonilo-video-kit) / [sonilo-video-kit (JS)](https://github.com/sonilo-ai/sonilo-js/tree/main/packages/sonilo-video-kit).
-- **The JS SDK's generic `client.request()` escape hatch** — calls the raw endpoint directly with the same params as the MCP tool:
+client = Sonilo()  # reads SONILO_API_KEY
 
-  ```ts
-  import { SoniloClient } from "sonilo";
+result = client.audio_ducking.generate(
+    voice="interview.mp4",  # audio or video; also voice_url=
+    music="background-track.wav",  # audio only; also music_url=
+)
+result.save("ducked.mp4" if result.output_type == "video" else "ducked.wav")
+```
 
-  const client = new SoniloClient(); // reads SONILO_API_KEY
-  const res = await client.request("/v1/audio-ducking", {
-    method: "POST",
-    body: (() => {
-      const form = new FormData();
-      form.set("voice_url", "https://example.com/interview.mp4");
-      form.set("music_url", "https://example.com/background-track.wav");
-      return form;
-    })(),
-  });
-  const { task_id } = await res.json();
-  ```
+### JavaScript / TypeScript (`npm install sonilo@>=0.14`)
 
-  The Python SDK has no public equivalent of `client.request()` — call the REST endpoint directly with `httpx`/`requests` instead (see cURL below for the exact form fields).
+```ts
+import { SoniloClient, download } from "sonilo";
+import { writeFile } from "node:fs/promises";
+
+const client = new SoniloClient(); // reads SONILO_API_KEY
+
+const result = await client.audioDucking.generate({
+  voice: "./interview.mp4", // audio or video; also voiceUrl
+  musicUrl: "https://example.com/background-track.wav", // audio only; also music
+});
+await writeFile(
+  result.output_type === "video" ? "ducked.mp4" : "ducked.wav",
+  await download(result.output_url!),
+);
+```
+
+### CLI (`npm install -g sonilo-cli` or `pip install sonilo-cli`)
+
+```bash
+sonilo audio-ducking --voice interview.mp4 --music-url https://example.com/background-track.wav
+```
+
+Always async under the hood — the CLI submits and polls for you. Exactly one of `--voice`/`--voice-url` and one of `--music`/`--music-url`. The default output name follows what comes back (`output.wav`, or `output.mp4` when the voice input was a video); `--output` overrides it. A local `--music` file must have an audio extension — the CLI rejects a video there up front, for the same reason the MCP tool does.
 
 ### cURL (raw REST API, no MCP host)
 
