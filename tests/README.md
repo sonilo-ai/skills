@@ -5,7 +5,7 @@ repo has no build to break: every claim in here is prose, and prose about
 another repo's API goes stale silently. It has already caught, on its first
 run, a recovery tool named for only one of the two servers, three
 behaviour-changing parameters documented nowhere, a `ducking` default that had
-been flipped upstream a release earlier, and a key prefix that was never right.
+been flipped upstream a release earlier, and a key prefix that was never right. The CLI check was added after six "no CLI command for video_to_video_*" lines outlived the release that added both commands and then survived a full repo restructure by moving to new files.
 
 ```bash
 python tests/validate.py             # offline; what CI runs on every push
@@ -21,6 +21,7 @@ python tests/validate.py --refresh   # needs `pip install sonilo-mcp`; re-reads
 | Tool names | A tool that exists on neither server; naming `get_sfx_task` without `get_generation_task` (or the reverse) — the two servers use different names for the same tool, so a doc that knows only one breaks for half the users |
 | Parameters | A parameter passed in an example that the tool does not have; a behaviour- or cost-changing parameter missing from the skill that covers it (`must_document`) |
 | Defaults | A documented default that contradicts the server's schema |
+| CLI claims | A "no CLI command for X" line that is no longer true, and any `sonilo <subcommand>` that does not exist |
 | Banned tokens | Strings that were true once — see `banned_tokens` in `tool_surface.json` |
 
 ## Keeping it honest

@@ -204,6 +204,49 @@ def check_documented_defaults(surface: dict, docs: dict[Path, str]) -> None:
                                f"tool schema says {want!r}")
 
 
+def check_cli_claims(surface: dict, docs: dict[Path, str]) -> None:
+    """A "no CLI command" claim must be true, and a shown command must exist.
+
+    This check exists because six lines saying `video_to_video_music` and
+    `video_to_video_sfx` had no CLI command outlived the release that added
+    both, then survived a full repo restructure by moving to new files. The
+    claim reads as a fact and sends people to write SDK code instead of running
+    one command, and nothing here could see it: the manifest knew the tools but
+    not the CLI.
+    """
+    cli = surface.get("cli")
+    if not cli:
+        return
+    commands = set(cli["commands"])
+    genuinely_absent = {k for k in cli["no_command"] if not k.startswith("_")}
+    tool_to_command = cli["tool_to_command"]
+
+    for path, text in docs.items():
+        rel = path.relative_to(ROOT)
+
+        # 1. "no CLI command for X" is only allowed when X really has none.
+        for m in re.finditer(
+            r"no CLI command[^.]{0,80}?`(\w+)`|`(\w+)`[^.]{0,60}?has \*\*no CLI command", text
+        ):
+            tool = m.group(1) or m.group(2)
+            if tool in genuinely_absent:
+                continue
+            if tool in tool_to_command:
+                fail(str(rel), f"claims `{tool}` has no CLI command, but "
+                               f"`sonilo {tool_to_command[tool]}` exists")
+
+        # 2. Any `sonilo <subcommand>` shown must be a real subcommand. Only
+        #    shell invocations count: `from sonilo import Sonilo` is Python, and
+        #    matching it would report `import` as a missing subcommand in every
+        #    skill that shows the SDK.
+        for line in text.splitlines():
+            if "import" in line:
+                continue
+            m = re.search(r"(?:^|\$ |`)sonilo ([a-z][a-z-]{2,})\b", line)
+            if m and m.group(1) not in commands:
+                fail(str(rel), f"shows `sonilo {m.group(1)}`, which is not a CLI subcommand")
+
+
 def check_banned_tokens(surface: dict, docs: dict[Path, str]) -> None:
     for path, text in docs.items():
         rel = path.relative_to(ROOT)
@@ -257,6 +300,7 @@ def main() -> int:
     check_tool_names(surface, docs)
     check_parameters(surface, docs)
     check_documented_defaults(surface, docs)
+    check_cli_claims(surface, docs)
     check_banned_tokens(surface, docs)
     check_key_prefix(docs)
 

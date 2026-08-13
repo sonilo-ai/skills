@@ -37,7 +37,7 @@ client = Sonilo()  # reads SONILO_API_KEY
 foley = client.video_to_sfx.generate(video="action-scene.mp4", prompt="Footsteps on gravel, distant traffic, a door slam")
 foley.save("foley.wav")
 
-# video_to_video_sfx has no CLI command — this is the only non-MCP way to get the muxed video back
+# video_to_video_sfx: get the video back with the effects muxed in
 video = client.video_to_video_sfx.generate(video="action-scene.mp4", segments=[{"start": 0, "end": 2, "prompt": "footsteps on gravel"}])
 video.save("with_sfx.mp4")
 ```
@@ -54,7 +54,7 @@ const foley = await client.videoToSfx.generate({
   prompt: "Footsteps on gravel, distant traffic, a door slam",
 });
 
-// video_to_video_sfx has no CLI command — this is the only non-MCP way to get the muxed video back
+// video_to_video_sfx: get the video back with the effects muxed in
 const video = await client.videoToVideoSfx.generate({
   video: "./action-scene.mp4",
   segments: [{ start: 0, end: 2, prompt: "footsteps on gravel" }],
@@ -67,7 +67,12 @@ const video = await client.videoToVideoSfx.generate({
 sonilo video-to-sfx --video action-scene.mp4 --output foley.wav
 ```
 
-Always async under the hood — the CLI submits and polls for you. `--format` accepts `wav|mp3|aac|flac`. **There is no CLI command for `video_to_video_sfx`** (the video-to-video variants aren't exposed by either CLI) — use the Python/JS SDK or the MCP tool for that.
+Always async under the hood — the CLI submits and polls for you. `--format` accepts `wav|mp3|aac|flac`.
+
+```bash
+# the muxed video, from the CLI
+sonilo video-to-video-sfx --video clip.mp4 --prompt "footsteps, distant thunder" --output foley.mp4
+```
 
 ### cURL (raw REST API, no MCP host)
 

@@ -40,7 +40,7 @@ client = Sonilo()  # reads SONILO_API_KEY
 score = client.video_to_music.generate(video="trailer.mp4", prompt="Build suspense, then resolve with a warm cinematic finish")
 score.save("score.m4a")
 
-# video_to_video_music has no CLI command — this is the only non-MCP way to get the muxed video back
+# video_to_video_music: get the video back with the music muxed in
 video = client.video_to_video_music.generate(video="trailer.mp4", prompt="cinematic, uplifting")
 video.save("scored.mp4")
 ```
@@ -59,7 +59,7 @@ const score = await client.videoToMusic.generate({
   prompt: "Build suspense, then resolve with a warm cinematic finish",
 });
 
-// video_to_video_music has no CLI command — this is the only non-MCP way to get the muxed video back
+// video_to_video_music: get the video back with the music muxed in
 const video = await client.videoToVideoMusic.generate({
   video: "./trailer.mp4",
   prompt: "cinematic, uplifting",
@@ -74,7 +74,12 @@ const video = await client.videoToVideoMusic.generate({
 sonilo video-to-music --video trailer.mp4 --prompt "Build suspense, then resolve with a warm cinematic finish" --output score.m4a
 ```
 
-`--format wav`, `--preserve-speech`, and `--isolate-vocals` each switch `video-to-music` to the async submit-and-poll path. **There is no CLI command for `video_to_video_music`** (the video-to-video variants aren't exposed by either CLI) — use the Python/JS SDK or the MCP tool for that.
+`--format wav`, `--preserve-speech`, and `--isolate-vocals` each switch `video-to-music` to the async submit-and-poll path.
+
+```bash
+# the muxed video, from the CLI
+sonilo video-to-video-music --video trailer.mp4 --prompt "cinematic, uplifting" --output scored.mp4
+```
 
 ### cURL (raw REST API, no MCP host)
 
