@@ -30,7 +30,7 @@ There are two transports, and either one is enough. Probe both before
 concluding that nothing is set up.
 
 1. **MCP:** is a `sonilo` MCP server connected (any Sonilo tool, e.g. `text_to_music` or `get_account_services`, available to call)? If so, call the free, read-only `get_account_services()`.
-2. **CLI:** if there are no Sonilo tools, run `sonilo whoami`. Exit code 0 means the CLI is installed and signed in, and the skills can drive it directly. Confirm with `sonilo account`, which is the same free call.
+2. **CLI:** if there are no Sonilo tools, run `sonilo account` — the same free, read-only call as above. Exit code 0 means the CLI is installed, signed in, and reaching the API, and the skills can drive it directly. **Do not probe with `sonilo whoami`:** it exits 0 even when signed out, so it cannot separate the two states, and on an account with no display name it prints an empty `account:` line that reads like a broken credential. It is worth running only to *show* which account is active, never to decide.
 3. **Either one succeeds:** Sonilo is configured and working. Say so and stop. Ask only whether they want to rotate credentials.
 4. **Fails with 401:** authentication is stale, not missing. If they signed in with `sonilo login`, the key may have expired (90 days) or been revoked — `sonilo login` again fixes it. Otherwise the key is wrong: continue at Path C.
 5. **Neither responds:** nothing is connected — pick a path below and run it. MCP is the better default (it needs no shell, and it is the only transport that survives a dubbing job's two-hour poll), but a CLI that is installed and signed in is a complete setup on its own; do not make someone configure MCP they will not use.
