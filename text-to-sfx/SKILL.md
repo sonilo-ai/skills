@@ -24,8 +24,8 @@ the saved file.
 Pick one at the start of the session and stay on it. Do not mix the two inside
 a single job, and do not announce the choice.
 
-1. **Sonilo MCP tools visible in this session** (`text_to_sfx` and friends) — use them. This is the preferred path: it needs no shell, and it is the only one that survives a very long generation.
-2. **No Sonilo MCP tools, but `sonilo whoami` exits 0** — use the CLI commands below. Same API, same account, same credential file.
+1. **Sonilo MCP tools visible in this session** (`text_to_sfx` and friends) — use them. This is the preferred path: it needs no shell, and it is the only one that survives a very long generation. If a call fails to authenticate — rather than failing on its inputs — this transport is not usable in this session: go to 2 instead of retrying it.
+2. **No usable Sonilo MCP tools, but `sonilo account` exits 0** — use the CLI commands below. Same API, same account, same credential file. Probe with `sonilo account`, not `sonilo whoami`: whoami exits 0 even when signed out, so it cannot tell the two states apart.
 3. **Neither** — stop and run the [setup-api-key](../setup-api-key) skill. Do not call `api.sonilo.com` with curl to work around it; both transports handle uploads, polling and retries that a bare request does not.
 
 ## Quick Start
