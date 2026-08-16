@@ -2,7 +2,7 @@
 name: text-to-sfx
 description: Generate a sound effect from a text description using Sonilo — a UI chime, a whoosh, an impact, ambience, a stylized cue — when there is no video to match. Use when the user describes the sound they want in words and gives a duration. For SFX matched to footage, use the video-to-sfx skill; for music, use text-to-music.
 license: MIT
-compatibility: Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+compatibility: "Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill."
 allowed-tools: Bash, Read, Write, mcp__sonilo__*
 ---
 

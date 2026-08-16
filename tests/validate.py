@@ -61,11 +61,15 @@ def parse_frontmatter(text: str, where: str) -> dict:
         return {}
     out: dict[str, str] = {}
     key = None
-    for line in text[4:end].splitlines():
+    for lineno, line in enumerate(text[4:end].splitlines(), start=2):
         m = re.match(r"^([a-zA-Z_-]+):\s*(.*)$", line)
         if m:
             key = m.group(1)
-            out[key] = m.group(2).strip()
+            value = m.group(2).strip()
+            if value and not value.startswith(("'", '"', "|", ">")) and re.search(r":(?:\s|$)", value):
+                fail(where, f"frontmatter line {lineno} has an unquoted `: ` in `{key}`; "
+                            "quote the value or use a folded block")
+            out[key] = value
         elif key and line.startswith((" ", "\t")):
             out[key] += " " + line.strip()  # folded continuation
     return out

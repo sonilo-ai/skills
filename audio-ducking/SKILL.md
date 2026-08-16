@@ -2,7 +2,7 @@
 name: audio-ducking
 description: Duck a music bed under a voice track using Sonilo — automatically lowers the music wherever the voice speaks and lifts it back in the gaps. Use when mixing a separately-generated or existing music track under narration, dialogue, or a video's own voice track, without manual volume automation.
 license: MIT
-compatibility: Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+compatibility: "Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill."
 allowed-tools: Bash, Read, Write, mcp__sonilo__*
 ---
 

@@ -2,7 +2,7 @@
 name: text-to-music
 description: Generate music from a text prompt using Sonilo — instrumental tracks, background beds, jingles, loops — when there is no video to score. Use when the user describes the music they want in words and gives a duration. Every track is licensed and cleared for commercial use. For scoring an existing video, use the video-to-music skill instead.
 license: MIT
-compatibility: Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+compatibility: "Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill."
 allowed-tools: Bash, Read, Write, mcp__sonilo__*
 ---
 

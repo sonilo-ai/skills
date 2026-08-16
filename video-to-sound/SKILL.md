@@ -2,7 +2,7 @@
 name: video-to-sound
 description: Generate music AND sound effects for a video in a single balanced, single-charge call using Sonilo. Use instead of calling the music and sound-effects skills separately for the same video — the two layers are mixed and ducked against each other by the backend. Returns a mixed audio track, or a new video with it muxed in.
 license: MIT
-compatibility: Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+compatibility: "Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill."
 allowed-tools: Bash, Read, Write, mcp__sonilo__*
 ---
 
