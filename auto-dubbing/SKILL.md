@@ -2,7 +2,7 @@
 name: auto-dubbing
 description: Dub a video into one or more other languages using Sonilo, translating and re-voicing the speech into a new video per language. Use when a user needs a video localized into another language, not just subtitled. Billed per language with zero free trial — confirm language count with the user before calling.
 license: MIT
-compatibility: Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+compatibility: "Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill."
 allowed-tools: Bash, Read, Write, mcp__sonilo__*
 ---
 

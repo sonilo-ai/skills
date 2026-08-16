@@ -2,7 +2,7 @@
 name: video-to-music
 description: Score a video with original music using Sonilo — the model watches the cut and matches pacing, motion, and emotion, returning either the audio or a new video with the score muxed in. Use when the user has a finished video that needs a soundtrack. Every track is licensed and cleared for commercial use. For music with no video, use the text-to-music skill.
 license: MIT
-compatibility: Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+compatibility: "Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill."
 allowed-tools: Bash, Read, Write, mcp__sonilo__*
 ---
 

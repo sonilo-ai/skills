@@ -2,7 +2,7 @@
 name: video-to-sfx
 description: Generate sound effects matched to a video using Sonilo — footsteps, impacts, ambience, foley — optionally scripted to specific timed segments, returning either the audio or a new video with the SFX muxed in. Use when the user has footage that needs sound design. For SFX from a text description alone, use the text-to-sfx skill; for music, use video-to-music.
 license: MIT
-compatibility: Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill.
+compatibility: "Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill."
 allowed-tools: Bash, Read, Write, mcp__sonilo__*
 ---
 
