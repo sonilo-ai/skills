@@ -23,7 +23,8 @@ What it checks:
 Run: python tests/validate.py            # offline, this is what CI runs
      python tests/validate.py --refresh  # regenerate the local surface from an
                                          # installed sonilo-mcp, then check
-Stdlib only, on purpose: CI needs no install step to run the offline checks.
+Requires PyYAML so the frontmatter is parsed exactly as YAML, not approximated
+with a line scanner.
 """
 from __future__ import annotations
 
@@ -31,6 +32,12 @@ import json
 import re
 import sys
 from pathlib import Path
+
+try:
+    import yaml
+except ImportError:  # pragma: no cover - exercised by environments, not tests
+    print("tests/validate.py needs PyYAML: python -m pip install PyYAML", file=sys.stderr)
+    raise SystemExit(2)
 
 ROOT = Path(__file__).resolve().parent.parent
 SURFACE = Path(__file__).resolve().parent / "tool_surface.json"
@@ -49,9 +56,7 @@ def note(message: str) -> None:
 
 
 def parse_frontmatter(text: str, where: str) -> dict:
-    """Read the leading `---` block. Deliberately not a YAML parser: these files
-    are flat `key: value` pairs and a dependency-free CI is worth more than
-    supporting nesting nobody uses."""
+    """Read and validate the leading YAML frontmatter block."""
     if not text.startswith("---\n"):
         fail(where, "no frontmatter block")
         return {}
@@ -59,20 +64,19 @@ def parse_frontmatter(text: str, where: str) -> dict:
     if end == -1:
         fail(where, "frontmatter block is never closed")
         return {}
-    out: dict[str, str] = {}
-    key = None
-    for lineno, line in enumerate(text[4:end].splitlines(), start=2):
-        m = re.match(r"^([a-zA-Z_-]+):\s*(.*)$", line)
-        if m:
-            key = m.group(1)
-            value = m.group(2).strip()
-            if value and not value.startswith(("'", '"', "|", ">")) and re.search(r":(?:\s|$)", value):
-                fail(where, f"frontmatter line {lineno} has an unquoted `: ` in `{key}`; "
-                            "quote the value or use a folded block")
-            out[key] = value
-        elif key and line.startswith((" ", "\t")):
-            out[key] += " " + line.strip()  # folded continuation
-    return out
+    block = text[4:end]
+    try:
+        parsed = yaml.safe_load(block) or {}
+    except yaml.YAMLError as exc:
+        detail = getattr(exc, "problem", None) or str(exc).splitlines()[0]
+        mark = getattr(exc, "problem_mark", None)
+        location = f" at line {mark.line + 1} column {mark.column + 1}" if mark else ""
+        fail(where, f"invalid YAML frontmatter{location}: {detail}")
+        return {}
+    if not isinstance(parsed, dict):
+        fail(where, "frontmatter must be a YAML mapping")
+        return {}
+    return {str(key): "" if value is None else str(value) for key, value in parsed.items()}
 
 
 def check_frontmatter(skill_dir: Path, text: str) -> None:

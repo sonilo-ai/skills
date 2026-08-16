@@ -32,10 +32,10 @@ a single job, and do not announce the choice.
 > separately instead:
 >
 > ```bash
-> # --timeout is the CLI's own wait, not the job's: it returns early and the
-> # task keeps running. The id comes from the "Submitted task ..." line.
-> sonilo dubbing --video-url https://example.com/clip.mp4 --languages es,fr --timeout 300000
-> sonilo tasks wait <task-id> --timeout 300000   # repeat until it finishes
+> # --timeout is the CLI's own wait, not the job's: this returns before a host
+> # shell can kill the process. The id comes from the "Submitted task ..." line.
+> sonilo dubbing --video-url https://example.com/clip.mp4 --languages es,fr --timeout 300
+> sonilo tasks wait <task-id>   # repeat until it finishes
 > ```
 >
 > The MCP path has no such limit and is the better transport for dubbing.
@@ -90,7 +90,7 @@ sonilo dubbing --video-url https://example.com/product-demo.mp4 --languages es,f
 # writes dubbed.es.mp4 and dubbed.fr.mp4
 ```
 
-`--timeout` defaults to 7200 seconds already, matching the backend's ceiling — no need to override it for a typical call.
+`--timeout` defaults to 7200 seconds already, matching the backend's ceiling. That is fine in a normal terminal; inside an agent host shell, use the shorter submit-and-poll pattern above so the shell tool does not kill the foreground command.
 
 ### cURL (raw REST API, no MCP host)
 

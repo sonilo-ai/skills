@@ -23,17 +23,19 @@ separately bills the user twice for what `video_to_sound` does in one charge.
 
 ```bash
 claude plugin eval skills@sonilo-skills          # or a path, or plugin@marketplace
-claude plugin eval . --case 'routing-*' --runs 3
+claude plugin eval . --case 'routing-*' --runs 3 --no-publish
 ```
 
-**`claude plugin eval` is in early access and refuses to run as of CLI 2.1.231**,
-so these cases are schema-valid but have not been executed by the harness. What
-*has* been verified is every assumption they rest on:
+As of Claude Code 2.1.232, `claude plugin eval --help` documents the command,
+but running it still exits with `` `plugin eval` is currently in early access ``.
+These cases are schema-valid but have not been executed by the eval harness.
+They are safe to run as routing checks once the gate opens because they allow
+only the `Skill` tool. The schema and grader assumptions are:
 
-- The schema itself is transcribed from the CLI's own validator in 2.1.231
+- The cases use `schema_version` 1.1 with grader types
   (`schema_version` 1.1; grader types `regex`, `tool_order`, `tool_used`,
-  `file_exists`, `llm`, `baseline`), because the format is not yet documented
-  publicly. Re-check it when the feature ships.
+  `file_exists`, `llm`, `baseline`). Re-check them against the eval runner once
+  access is available.
 - `tool_used` compares the tool name exactly and tests `input_match` as a JS
   RegExp against the serialized tool input.
 - A skill invocation records as tool `Skill` with input
