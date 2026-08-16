@@ -8,6 +8,7 @@ behaviour-changing parameters documented nowhere, a `ducking` default that had
 been flipped upstream a release earlier, and a key prefix that was never right. The CLI check was added after six "no CLI command for video_to_video_*" lines outlived the release that added both commands and then survived a full repo restructure by moving to new files.
 
 ```bash
+python -m pip install PyYAML         # validator dependency
 python tests/validate.py             # offline; what CI runs on every push
 python tests/validate.py --refresh   # needs `pip install sonilo-mcp`; re-reads
                                      # the local tool surface from the package
@@ -17,7 +18,7 @@ python tests/validate.py --refresh   # needs `pip install sonilo-mcp`; re-reads
 
 | Check | Catches |
 |---|---|
-| Frontmatter | `name` not matching the directory (installed copies resolve by name), missing fields, a description over the spec's 1024 chars or one that never says "Sonilo" and so never routes |
+| Frontmatter | Invalid YAML, `name` not matching the directory (installed copies resolve by name), missing fields, a description over the spec's 1024 chars or one that never says "Sonilo" and so never routes |
 | Tool names | A tool that exists on neither server; naming `get_sfx_task` without `get_generation_task` (or the reverse) — the two servers use different names for the same tool, so a doc that knows only one breaks for half the users |
 | Parameters | A parameter passed in an example that the tool does not have; a behaviour- or cost-changing parameter missing from the skill that covers it (`must_document`) |
 | Defaults | A documented default that contradicts the server's schema |

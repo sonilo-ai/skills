@@ -19,7 +19,7 @@ npx skills add sonilo-ai/skills
 Or install a single skill:
 
 ```bash
-npx skills add sonilo-ai/skills/video-to-music
+npx skills add sonilo-ai/skills --skill video-to-music
 ```
 
 ### Option 2: Claude Code plugin
@@ -135,11 +135,11 @@ billing twice for the two separate skills.
 claude plugin eval skills@sonilo-skills
 ```
 
-`claude plugin eval` is in early access and does not run yet; the cases are
-schema-valid and their assumptions verified headlessly. See
-[evals/README.md](./evals/README.md) for what was checked and how. Functional
-evals — does the call produce correct audio — are still open; contributions
-welcome.
+`claude plugin eval` is still early-access gated as of Claude Code 2.1.232, so
+these cases are schema-valid but not yet runnable by every CLI install. They are
+routing-only and cannot call Sonilo generation tools. See
+[evals/README.md](./evals/README.md) for the current status. Functional evals —
+does the call produce correct audio — are still open; contributions welcome.
 
 ## License
 

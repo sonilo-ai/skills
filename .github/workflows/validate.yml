@@ -20,8 +20,12 @@ jobs:
         with:
           python-version: "3.12"
 
-      # The offline checks are stdlib-only on purpose: frontmatter, tool names,
-      # parameters, defaults and banned tokens all validate with no install.
+      - name: Install validator dependencies
+        run: python -m pip install PyYAML
+
+      # The offline checks need PyYAML only so frontmatter is parsed as real
+      # YAML. Tool names, parameters, defaults and banned tokens validate
+      # against the recorded surface with no Sonilo install.
       - name: Validate skills against the recorded tool surface
         run: python tests/validate.py
 
