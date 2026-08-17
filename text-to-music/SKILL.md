@@ -86,7 +86,7 @@ curl -X POST "https://api.sonilo.com/v1/text-to-music" \
 
 | Tool | Description |
 |------|-------------|
-| `text_to_music(prompt, duration, output_format?, variants_num?, output_directory?)` | Generate music from a text description only — no video. |
+| `text_to_music(prompt, duration, output_format?, variants_num?, stems?, output_directory?)` | Generate music from a text description only — no video. |
 
 ## Parameters
 
@@ -96,7 +96,48 @@ curl -X POST "https://api.sonilo.com/v1/text-to-music" \
 | `duration` | int | — | Required. 1–360 seconds. Unlike the video tools, there is no source to take the length from, so you must set it. |
 | `variants_num` | int | `1` | 1–10. Generates that many distinct creative directions in one request — different takes, not re-renders of one. **Cost scales linearly with the count, and any value above 1 is never covered by the free trial**, so confirm the number with the user first. Above 1 writes one file per variant and forces the backend's async mode. |
 | `output_format` | string | `m4a` | `m4a` or `wav`. `wav` triggers the backend's async mode internally — no user-facing "mode" param needed. |
+| `stems` | bool | `false` | **Free.** Additionally splits each generated track into four separated instrument tracks — `drums`, `bass`, `vocals`, `other` — returned alongside the untouched full mix. Async-only on REST (`stems=true` without `mode=async` is a `400`). See [Stems](#stems). |
 | `output_directory` | string | `SONILO_MCP_BASE_PATH` | Absolute, or relative to the base path. |
+
+## Stems
+
+`stems=true` additionally returns each generated track split into four
+separated instrument tracks — `drums`, `bass`, `vocals`, `other` — **free of
+charge**. The full mix is untouched; the stems arrive alongside it in the task
+result as a `stems` array next to `audio`:
+
+```json
+"stems": [
+  {
+    "stream_index": 0,
+    "drums":  { "url": "…", "content_type": "audio/mp4", "file_size": 2913044 },
+    "bass":   { "url": "…", "content_type": "audio/mp4", "file_size": 2870211 },
+    "vocals": { "url": "…", "content_type": "audio/mp4", "file_size": 2794560 },
+    "other":  { "url": "…", "content_type": "audio/mp4", "file_size": 3011830 }
+  }
+]
+```
+
+What matters when you use it:
+
+- **Async only on REST.** `stems=true` requires `mode=async` (a `400` otherwise): you get a `202` + `task_id` and poll `/v1/tasks/{task_id}`. The MCP tools are always async, so on the hosted server the param just works.
+- **Available on every surface** (verified 2026-08-17): REST, the hosted MCP server, the local `sonilo-mcp` package (>= 0.18.0), the SDKs (`sonilo` npm >= 0.16.0, PyPI >= 0.15.0), and the CLIs (`--stems`, npm `sonilo-cli` >= 0.15.0, PyPI `sonilo-cli` >= 0.14.0).
+- **Match stems to tracks by `stream_index`, never by array position.** A stream whose separation failed is simply absent, so `stems` can be shorter than `audio`.
+- **`stems_error` is not a failed generation.** When separation failed wholly or partly, or was skipped, the task carries a `stems_error` string — possibly *alongside* a partial `stems` array. The generation itself succeeded and every `audio` URL is valid: treat missing stems as a missing extra, never as a reason to retry or refund.
+- **Timing:** separation runs after generation finishes — typically another 2–6 min, giving up after 30 min (then `stems_error`).
+- **The four stem names are fixed** (htdemucs separation): melodic instruments — piano, synths, guitar, strings — land in `other`, and on instrumental tracks `vocals` is near-silent. That is correct behavior, not a bug.
+- **Formats:** stems normally follow `output_format`; trust each stem's `content_type` for what was actually delivered.
+
+```bash
+# REST: submit with stems, then poll the task
+curl -X POST "https://api.sonilo.com/v1/text-to-music" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  --data-urlencode "prompt=A chill lo-fi hip hop beat with jazzy piano chords" \
+  --data-urlencode "duration=30" \
+  --data-urlencode "mode=async" \
+  --data-urlencode "stems=true"
+# → {"task_id": "…"} — poll GET /v1/tasks/{task_id} for audio + stems
+```
 
 ## Prompting
 
@@ -117,12 +158,13 @@ auto-refund, but your own retry is a new charge.
 - **If the user has a finished video, you are in the wrong skill.** [video-to-music](../video-to-music) syncs to the actual cut instead of producing a generic track of matching length.
 - **Duration is required here.** Don't guess it — ask if the user hasn't said.
 - **Several takes in one go:** `variants_num=3` returns three distinct directions for one request instead of three re-rolls. It costs 3×, and it is never free-trial covered — say the price before calling.
+- **User wants the track's instruments as separate files** (to remix, re-balance, or drop one)? `stems=true` — it's free, but async-only and not on every surface yet; see [Stems](#stems).
 - **Content restriction:** prompts cannot reference specific artists, bands, or copyrighted lyrics.
 
 ## Recovering a Timed-Out Call
 
-`text_to_music` streams its result in one call unless `output_format="wav"` or
-`variants_num` above 1 triggers the backend's async mode. If an async variant
+`text_to_music` streams its result in one call unless `output_format="wav"`,
+`variants_num` above 1, or `stems=true` triggers the backend's async mode. If an async variant
 times out, the error message includes a `task_id`; the generation keeps running
 (and is already charged) on the backend. Call `get_sfx_task(task_id)` —
 `get_generation_task(task_id)` on the hosted server — to retrieve the result;

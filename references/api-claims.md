@@ -37,6 +37,19 @@ Added 2026-08-16 with the endpoint itself; verified against the shipped backend 
 - [x] The variation prompts are **narrower than what the upstream produces** by product decision: `negative_prompt`, `thinking`, `structure_source` and the variation title/summary/tags are stripped before the envelope is built and are not recoverable from the task.
 - [x] ⚠️ **Input differs by MCP server**: the hosted server exposes `video_url` only; local `sonilo-mcp` (0.17.0+) also takes `video_path`. Both SDKs and both CLIs accept a local file or a URL.
 
+## stems (text_to_music + video_to_music)
+
+Added 2026-08-17, verified against the shipped backend (live on REST `/v1/text-to-music` + `/v1/video-to-music` and on the hosted MCP server's `text_to_music` + `video_to_music`).
+
+- [x] **Free of charge.** Splits each generated track into four separated instrument tracks — `drums`, `bass`, `vocals`, `other` — delivered as a `stems` array alongside the clean `audio` in the task result.
+- [x] REST requires `mode=async` (`stems=true` in stream mode = **400**); MCP is always async, so the param just works there.
+- [x] Result entry shape: `{ stream_index, drums, bass, vocals, other }`, each stem `{ url, content_type, file_size }`. **Look entries up by `stream_index`, never by position** — a stream whose separation failed is absent, so `stems` can be shorter than `audio`.
+- [x] `stems_error` (string) appears when separation failed wholly/partly or was skipped, and **can appear alongside a partial `stems`**. The generation itself succeeded and the audio URLs are valid — a missing extra, never a failed generation.
+- [x] Separation runs after generation: typically **+2–6 min**, gives up after **30 min**. Stems normally follow `output_format`; each stem's `content_type` reports what was delivered.
+- [x] On `video_to_music` it splits the **generated** music, never the video's own audio (source speech = `preserve_speech`, unrelated).
+- [x] The four stem names are fixed (htdemucs): melodic instruments land in `other`; on instrumental tracks `vocals` is near-silent — correct behavior, not a bug.
+- [x] **Surface gap closed 2026-08-17** (same day): sonilo-mcp 0.18.0, npm sonilo 0.16.0 / sonilo-cli 0.15.0, and PyPI sonilo 0.15.0 / sonilo-cli 0.14.0 all ship `stems`; `tests/tool_surface.json` refreshed against the published 0.18.0. Every surface now accepts it.
+
 ## Billing / general
 
 - [x] Charged up front at submission; **failed generations auto-refunded**. Caller retries = new charge. **No preview/low-cost mode.** Music + SFX = separate task types, separate per-second rates, separate prepay minute pools. `variants_num` scales v2m cost linearly; N>1 never covered by free trial.
@@ -44,7 +57,7 @@ Added 2026-08-16 with the endpoint itself; verified against the shipped backend 
   1. MCP input = **`video_url` only**, no file upload
   2. MCP **always async** — no `mode` param; returns `task_id`, results via `get_generation_task` (named `get_sfx_task` on the local server)
   3. MCP `video_to_music` has **no `segments` param** — segmented music via MCP only through section-shaped prompt text (prompt-analysis path)
-- [x] Output = **audio files only** (not stems-in-DAW-sense, not video). v2m: m4a default, `output_format=wav` optional (async-only on REST; always on MCP); preserve_speech adds vocals track + mux; ducking adds ducked music URLs. v2sfx: single file, aac default, wav/mp3/flac optional. Video out = separate `/v1/video-to-video-*` endpoints + corresponding MCP tools.
+- [x] Output = **audio files only** (not video). v2m: m4a default, `output_format=wav` optional (async-only on REST; always on MCP); preserve_speech adds vocals track + mux; ducking adds ducked music URLs. v2sfx: single file, aac default, wav/mp3/flac optional. Video out = separate `/v1/video-to-video-*` endpoints + corresponding MCP tools. ⚠️ An earlier pass said "not stems-in-DAW-sense" — no longer true: `stems=true` on t2m/v2m (added 2026-08-17, see the stems section below) returns exactly that.
 - [x] Multi-track input — default ffmpeg stream selection (typically first audio track) for ducking/speech. Wording: "for multi-track videos, the default audio track is used."
 
 ## Empirical test (2026-07-29)
