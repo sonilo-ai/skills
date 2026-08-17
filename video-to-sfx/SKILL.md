@@ -145,6 +145,7 @@ runs auto-refund, but your own retry is a new charge.
 - **Prompting:** be specific and combine elements — "Heavy rain on a tin roof" beats "Rain".
 - **Don't confuse this with music.** For a background score or soundtrack, use [video-to-music](../video-to-music) instead. To generate both music and SFX together in one balanced, single-charge call, use [video-to-sound](../video-to-sound).
 - **No footage?** [text-to-sfx](../text-to-sfx) generates a single clip from a description alone.
+- **Don't know what it should sound like?** Run [video-analysis](../video-analysis) first: one call returns a section plan plus ready-to-use generation prompts read off the footage, which beats guessing a prompt and rerolling. It is a paid call that generates nothing, so use it when the brief is genuinely unclear — not when the user already told you what they want.
 
 ## Recovering a Timed-Out Call
 

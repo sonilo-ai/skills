@@ -11,9 +11,9 @@
     "skill naming one must name the other too, or it breaks for half the users."
   ],
   "_generated": {
-    "local_from": "sonilo-mcp 0.16.0 (PyPI)",
+    "local_from": "sonilo-mcp 0.17.0 (PyPI)",
     "hosted_from": "sonilo-api-dashboard backend/app/mcp_server.py",
-    "date": "2026-08-12"
+    "date": "2026-08-16"
   },
   "hosted": {
     "get_account_services": [],
@@ -92,6 +92,11 @@
       "video_url",
       "languages",
       "ducking"
+    ],
+    "analyze_video": [
+      "video_url",
+      "prompt",
+      "variants_num"
     ]
   },
   "local": {
@@ -194,6 +199,12 @@
     ],
     "play_audio": [
       "input_file_path"
+    ],
+    "analyze_video": [
+      "video_path",
+      "video_url",
+      "prompt",
+      "variants_num"
     ]
   },
   "cli": {
@@ -221,7 +232,8 @@
       "video-to-video-sound",
       "audio-ducking",
       "dubbing",
-      "tasks"
+      "tasks",
+      "video-analysis"
     ],
     "tool_to_command": {
       "text_to_music": "text-to-music",
@@ -237,7 +249,8 @@
       "get_sfx_task": "tasks",
       "get_generation_task": "tasks",
       "get_account_services": "account",
-      "get_usage": "usage"
+      "get_usage": "usage",
+      "analyze_video": "video-analysis"
     },
     "no_command": {
       "_comment": "Tools with genuinely no CLI equivalent. Saying so is allowed only for these.",
@@ -303,6 +316,14 @@
         ],
         "usage": [
           "--days"
+        ],
+        "video-analysis": [
+          "--output",
+          "--prompt",
+          "--timeout",
+          "--variants",
+          "--video",
+          "--video-url"
         ],
         "video-to-music": [
           "--async",
@@ -418,6 +439,9 @@
     ],
     "video_to_sfx": [
       "segments"
+    ],
+    "analyze_video": [
+      "variants_num"
     ]
   },
   "banned_tokens": {

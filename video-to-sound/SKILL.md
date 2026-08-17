@@ -147,6 +147,7 @@ one balanced call, both crafts apply:
 - **For `video_to_video_sound`, the source audio is dropped unless you say otherwise.** `keep_original_sound=true` keeps the whole original track under the generated mix; `preserve_speech=true` keeps only the isolated speech. If a user reports "my dialogue disappeared", this is the fix.
 - Only the **combined mixed result** is saved. The individual music/SFX/processed stems exist in the task body on the backend but are deliberately not downloaded — four files per call would bury the one the user actually wants. If stems are needed, call the REST API directly and inspect the task body.
 - Want the video back with the soundtrack baked in? Use `video_to_video_sound` instead of `video_to_sound`.
+- **Don't know what it should sound like?** Run [video-analysis](../video-analysis) first: one call returns a section plan plus ready-to-use generation prompts read off the footage, which beats guessing a prompt and rerolling. It is a paid call that generates nothing, so use it when the brief is genuinely unclear — not when the user already told you what they want.
 
 ## Recovering a Timed-Out Call
 
