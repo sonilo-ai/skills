@@ -1,6 +1,6 @@
 ---
 name: task-recovery
-description: Recover the result of a timed-out Sonilo generation call using its task_id. Use whenever text_to_sfx, video_to_sfx, video_to_video_music, video_to_video_sfx, video_to_sound, video_to_video_sound, audio_ducking, dubbing, or video_to_music(preserve_speech=true) times out or its call was interrupted — the generation already ran (and was already charged) and its result is still retrievable.
+description: Recover the result of a timed-out Sonilo generation call using its task_id. Use whenever text_to_sfx, video_to_sfx, video_to_video_music, video_to_video_sfx, video_to_sound, video_to_video_sound, audio_ducking, dubbing, analyze_video, or video_to_music(preserve_speech=true) times out or its call was interrupted — the generation already ran (and was already charged) and its result is still retrievable.
 license: MIT
 compatibility: "Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill."
 allowed-tools: Bash, Read, Write, mcp__sonilo__*
@@ -8,7 +8,7 @@ allowed-tools: Bash, Read, Write, mcp__sonilo__*
 
 # Sonilo Task Recovery
 
-Every Sonilo generation that runs asynchronously on the backend (SFX, ducking, video-to-video, video-to-sound, dubbing, and `video_to_music(preserve_speech=true)`) is already charged the moment it's accepted — a client-side timeout does **not** stop it or refund it. This tool checks a task's status and, once finished, downloads its result. It never itself charges anything.
+Every Sonilo generation that runs asynchronously on the backend (SFX, ducking, video-to-video, video-to-sound, dubbing, video-analysis, and `video_to_music(preserve_speech=true)`) is already charged the moment it's accepted — a client-side timeout does **not** stop it or refund it. This tool checks a task's status and, once finished, downloads its result. It never itself charges anything.
 
 > **Setup:** See the [setup-api-key](../setup-api-key) skill.
 
@@ -49,7 +49,7 @@ result = client.tasks.wait("a1b2c3d4-...")  # polls until terminal; raises TaskF
 result.save("recovered.wav")
 ```
 
-`tasks.get`/`tasks.wait` default to parsing an SFX-shaped result. For a task from `dubbing`, `video_to_sound`/`video_to_video_sound`, or async `video_to_music`, pass the matching parser explicitly (`from sonilo.resources.tasks import parse_music_result, parse_sound_result, parse_dubbing_result`) — see [sonilo-python's README](https://github.com/sonilo-ai/sonilo-python#sound-effects-async-tasks) for the exact call shape per task type.
+`tasks.get`/`tasks.wait` default to parsing an SFX-shaped result. For a task from `dubbing`, `video_to_sound`/`video_to_video_sound`, `analyze_video`, or async `video_to_music`, pass the matching parser explicitly (`from sonilo.resources.tasks import parse_music_result, parse_sound_result, parse_dubbing_result, parse_video_analysis_result`) — see [sonilo-python's README](https://github.com/sonilo-ai/sonilo-python#sound-effects-async-tasks) for the exact call shape per task type.
 
 ### JavaScript / TypeScript (`npm install sonilo`)
 
@@ -98,7 +98,7 @@ The MCP tool does one status check and, if `status` is terminal, downloads and s
 | Status | What happens |
 |--------|--------------|
 | `processing` | Returns a "still processing, try again later" message. No file saved. Call again after a short wait. |
-| `succeeded` | Downloads and saves the result — audio for `text_to_sfx`/`video_to_sfx`; a single `.wav` or `.mp4` for `audio_ducking`; a single `.mp4` for `video_to_video_music`/`video_to_video_sfx`/`video_to_video_sound`; a single `.wav` for `video_to_sound`; one `.mp4` per language for `dubbing`; for a `video_to_music(preserve_speech=true)` task, the music stream(s) plus the `vocals` stem plus the `mux`. |
+| `succeeded` | Downloads and saves the result — audio for `text_to_sfx`/`video_to_sfx`; a single `.wav` or `.mp4` for `audio_ducking`; a single `.mp4` for `video_to_video_music`/`video_to_video_sfx`/`video_to_video_sound`; a single `.wav` for `video_to_sound`; one `.mp4` per language for `dubbing`; for a `video_to_music(preserve_speech=true)` task, the music stream(s) plus the `vocals` stem plus the `mux`. An `analyze_video` task is the exception: it has no file at all, so the creative brief comes back inline as JSON and nothing is written to disk. |
 | `failed` | Raises an error including the backend's error code/message and whether the charge was **refunded** — check this before telling the user they've been billed for nothing. |
 | task id not found (404) | The id is wrong/typo'd, or belongs to a purely streaming call (`text_to_music`, or `video_to_music` without `preserve_speech`/`ducking`/`output_format="wav"`) — those have no task at all and can't be recovered this way. Nothing to retry. |
 | any other status (not `processing`/`succeeded`/`failed`) | Raised as an "unexpected task status" error naming the task id. Treat as transient — this is a backend state this tool doesn't otherwise special-case — and call `get_sfx_task(task_id)` again shortly. |

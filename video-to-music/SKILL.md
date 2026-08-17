@@ -147,6 +147,7 @@ generate once, iterate on the prompt, not on rerolls.
 - **Several takes in one go:** `variants_num=3` returns three distinct directions for one request instead of three re-rolls. It costs 3×, and it is never free-trial covered — say the price before calling.
 - **Duration:** always matched to the source video automatically — don't ask for it.
 - **Need SFX too?** To generate music **and** sound effects for the same video in one balanced, single-charge call, use [video-to-sound](../video-to-sound) rather than calling this and [video-to-sfx](../video-to-sfx) separately.
+- **Don't know what it should sound like?** Run [video-analysis](../video-analysis) first: one call returns a section plan plus ready-to-use generation prompts read off the footage, which beats guessing a prompt and rerolling. It is a paid call that generates nothing, so use it when the brief is genuinely unclear — not when the user already told you what they want.
 - **Content restriction:** prompts cannot reference specific artists, bands, or copyrighted lyrics.
 
 ## Recovering a Timed-Out Call

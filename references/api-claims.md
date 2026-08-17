@@ -22,6 +22,21 @@ Every numeric limit and behavior claim used by the skills in this repo, verified
 - [x] Exclusions — global prompt or segment prompts, both verbatim free text, **best-effort**.
 - [x] Timestamps — sub-second floats passed upstream **as-is, no rounding** (⚠️ unlike music segments which round to whole seconds — don't conflate).
 
+## video_analysis
+
+Added 2026-08-16 with the endpoint itself; verified against the shipped backend and the live
+`platform.sonilo.com/openapi.json`, not against an engineering conversation.
+
+- [x] **Cap 600 s** — the most generous cap of any endpoint (music is 360 s, SFX/sound/dubbing 180 s). A video can be analyzable and still too long to score in one call. Over-cap = **422 reject**.
+- [x] **Generates nothing.** No audio, no video, no artifact. The result is `segments` (whole-second `start`/`end`, a `label`, and a per-stretch `prompt`) plus `variations` (one generation `prompt` each). This is the only Sonilo task type with no media in its envelope, which is why every client surfaces it as text rather than a saved file.
+- [x] `variants_num` **1-5**, billed per brief — narrower than the music endpoints' 1-10. `prompt` ≤ 2000 chars, and it steers the **analysis**, not the score.
+- [x] **10-second billing floor**: a fixed per-request output cost regardless of clip length, so a 3-second clip costs the same as a 10-second one.
+- [x] Free trial: 2 calls, self-serve accounts only (the platform default allowance).
+- [x] Async, worker-executed: `202` + `task_id`, result on `GET /v1/tasks/{id}`. Failure carries `error.code` `ANALYSIS_FAILED` and is refunded; `TRANSFER_FAILED`, `INVALID_PAYLOAD` and `GENERATION_FAILED` are also possible depending on where it broke.
+- [x] `503 "Video analysis is temporarily unavailable"` is a server-side kill switch (`PROMPT_SERVICE_ENABLED`), not an auth or balance problem. No retry loop fixes it.
+- [x] The variation prompts are **narrower than what the upstream produces** by product decision: `negative_prompt`, `thinking`, `structure_source` and the variation title/summary/tags are stripped before the envelope is built and are not recoverable from the task.
+- [x] ⚠️ **Input differs by MCP server**: the hosted server exposes `video_url` only; local `sonilo-mcp` (0.17.0+) also takes `video_path`. Both SDKs and both CLIs accept a local file or a URL.
+
 ## Billing / general
 
 - [x] Charged up front at submission; **failed generations auto-refunded**. Caller retries = new charge. **No preview/low-cost mode.** Music + SFX = separate task types, separate per-second rates, separate prepay minute pools. `variants_num` scales v2m cost linearly; N>1 never covered by free trial.
@@ -38,5 +53,5 @@ Every numeric limit and behavior claim used by the skills in this repo, verified
 
 ## Live spec observations (sonilo.com/openapi.json, 2026-07-29)
 
-- Public endpoints (re-verified 2026-08-12 against `platform.sonilo.com/openapi.json`): `/v1/account/services` · `/v1/account/usage` · `/v1/text-to-music` · `/v1/text-to-sfx` · `/v1/video-to-music` · `/v1/video-to-sfx` · `/v1/video-to-video-music` · `/v1/video-to-video-sfx` · `/v1/video-to-sound` · `/v1/video-to-video-sound` · `/v1/audio-ducking` · `/v1/dubbing` · `/v1/tasks/{task_id}`. ⚠️ Corrects the 2026-07-29 observation this replaces: a combined music+SFX endpoint now exists (`/v1/video-to-sound` for audio-only output, `/v1/video-to-video-sound` for video output), and video-out endpoints are in the public spec (`/v1/video-to-video-music`, `/v1/video-to-video-sfx`, `/v1/video-to-video-sound`) — consistent with line 32's MCP claim above. Dubbing (`/v1/dubbing`) also shipped since the earlier pass.
+- Public endpoints (re-verified 2026-08-12 against `platform.sonilo.com/openapi.json`): `/v1/account/services` · `/v1/account/usage` · `/v1/text-to-music` · `/v1/text-to-sfx` · `/v1/video-to-music` · `/v1/video-to-sfx` · `/v1/video-to-video-music` · `/v1/video-to-video-sfx` · `/v1/video-to-sound` · `/v1/video-to-video-sound` · `/v1/audio-ducking` · `/v1/dubbing` · `/v1/video-analysis` (added 2026-08-16) · `/v1/tasks/{task_id}`. ⚠️ Corrects the 2026-07-29 observation this replaces: a combined music+SFX endpoint now exists (`/v1/video-to-sound` for audio-only output, `/v1/video-to-video-sound` for video output), and video-out endpoints are in the public spec (`/v1/video-to-video-music`, `/v1/video-to-video-sfx`, `/v1/video-to-video-sound`) — consistent with line 32's MCP claim above. Dubbing (`/v1/dubbing`) also shipped since the earlier pass.
 - `VideoToMusicRequest` confirms REST `segments` param exists; also has `isolate_vocals` — **behavior unverified, not yet covered by the skills**.
