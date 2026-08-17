@@ -13,7 +13,8 @@
   "_generated": {
     "local_from": "sonilo-mcp 0.17.0 (PyPI)",
     "hosted_from": "sonilo-api-dashboard backend/app/mcp_server.py",
-    "date": "2026-08-16"
+    "date": "2026-08-17",
+    "_note": "`stems` is hosted-only for now: the deployed hosted server has it on text_to_music and video_to_music, the published sonilo-mcp 0.17.0 does not yet. When the next sonilo-mcp release ships it, --refresh will pick it up here."
   },
   "hosted": {
     "get_account_services": [],
@@ -32,7 +33,8 @@
       "prompt",
       "duration",
       "output_format",
-      "variants_num"
+      "variants_num",
+      "stems"
     ],
     "video_to_music": [
       "video_url",
@@ -41,7 +43,8 @@
       "output_format",
       "ducking",
       "variants_num",
-      "prompt_influence"
+      "prompt_influence",
+      "stems"
     ],
     "video_to_sfx": [
       "video_url",
@@ -411,7 +414,8 @@
       "preserve_speech",
       "ducking",
       "variants_num",
-      "prompt_influence"
+      "prompt_influence",
+      "stems"
     ],
     "video_to_video_music": [
       "keep_original_sound",
@@ -431,7 +435,8 @@
       "variants_num"
     ],
     "text_to_music": [
-      "variants_num"
+      "variants_num",
+      "stems"
     ],
     "dubbing": [
       "languages",

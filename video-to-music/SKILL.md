@@ -107,7 +107,7 @@ curl -X POST "https://api.sonilo.com/v1/video-to-music" \
 
 | Tool | Description |
 |------|-------------|
-| `video_to_music(video_path? \| video_url?, prompt?, preserve_speech?, output_format?, ducking?, variants_num?, prompt_influence?, output_directory?)` | Score a video: matches pacing/motion/emotion, matches the video's duration exactly. Returns audio only (the video itself is not muxed). |
+| `video_to_music(video_path? \| video_url?, prompt?, preserve_speech?, output_format?, ducking?, variants_num?, prompt_influence?, stems?, output_directory?)` | Score a video: matches pacing/motion/emotion, matches the video's duration exactly. Returns audio only (the video itself is not muxed). |
 | `video_to_video_music(video_path? \| video_url?, prompt?, segments?, keep_original_sound?, ducking?, preserve_speech?, variants_num?, prompt_influence?, output_directory?)` | Same scoring, but returns a **new `.mp4`** with the music already muxed in. **By default the source's own audio is dropped** — see `keep_original_sound`. |
 
 ## Parameters
@@ -122,8 +122,39 @@ curl -X POST "https://api.sonilo.com/v1/video-to-music" \
 | `keep_original_sound` | bool | `false` | `video_to_video_music` only. **This is the parameter to reach for when the result sounds wrong.** By default the returned `.mp4` carries the generated music *alone* — the source's dialogue, room tone, and effects are gone. Set `true` to keep the whole source track with the music mixed under it, and add `ducking=true` to dip the music under the voice rather than mixing it flat. `keep_original_sound` supersedes `preserve_speech`. |
 | `variants_num` | int | `1` | 1–10. Generates that many distinct creative directions in one request — different takes, not re-renders of one. **Cost scales linearly with the count, and any value above 1 is never covered by the free trial**, so confirm the number with the user first. Above 1 writes one file per variant and forces the backend's async mode. |
 | `prompt_influence` | float \| null | API default `0.5` | 0–1: how strictly the music follows your prompt versus what the video itself suggests. Lower lets the footage lead, higher enforces the brief. **Free**, and it does not change the mode or the number of files — omit it unless the user asks for stricter or looser adherence. |
+| `stems` | bool | `false` | `video_to_music` only — `video_to_video_music` has no such param. **Free.** Additionally splits each **generated** track into four separated instrument tracks — `drums`, `bass`, `vocals`, `other` — returned alongside the untouched full mix. It never touches the video's own audio. Async-only on REST (`stems=true` without `mode=async` is a `400`). Live on REST and the **hosted** MCP server today; the local `sonilo-mcp` package does not accept it yet. See [Stems](#stems). |
 | `output_format` | string | `m4a` | `video_to_music` only — `video_to_video_music` has no such param and always outputs a muxed `.mp4`. `m4a` or `wav`. `wav` (and `preserve_speech`/`ducking`) triggers the backend's async mode internally. |
 | `output_directory` | string | `SONILO_MCP_BASE_PATH` | Absolute, or relative to the base path. |
+
+## Stems
+
+`stems=true` on `video_to_music` additionally returns each generated track
+split into four separated instrument tracks — `drums`, `bass`, `vocals`,
+`other` — **free of charge**. The full mix is untouched; the stems arrive
+alongside it in the task result as a `stems` array next to `audio`:
+
+```json
+"stems": [
+  {
+    "stream_index": 0,
+    "drums":  { "url": "…", "content_type": "audio/mp4", "file_size": 2913044 },
+    "bass":   { "url": "…", "content_type": "audio/mp4", "file_size": 2870211 },
+    "vocals": { "url": "…", "content_type": "audio/mp4", "file_size": 2794560 },
+    "other":  { "url": "…", "content_type": "audio/mp4", "file_size": 3011830 }
+  }
+]
+```
+
+What matters when you use it:
+
+- **It splits the GENERATED music, never the video's own audio.** The `vocals` stem is whatever singing the generated score contains — usually near-silent, since scores are mostly instrumental, and that is correct behavior, not a bug. To get the *source* speech isolated, use `preserve_speech` (a different feature) instead.
+- **Async only on REST.** `stems=true` requires `mode=async` (a `400` otherwise): you get a `202` + `task_id` and poll `/v1/tasks/{task_id}`. The MCP tools are always async, so on the hosted server the param just works.
+- **Surfaces today: REST and the hosted MCP server.** The local `sonilo-mcp` package does not accept `stems` yet (its next release adds it), and the SDKs and CLIs don't expose it yet either — use the REST call or the hosted tool until they do.
+- **Match stems to tracks by `stream_index`, never by array position.** A stream whose separation failed is simply absent, so `stems` can be shorter than `audio`.
+- **`stems_error` is not a failed generation.** When separation failed wholly or partly, or was skipped, the task carries a `stems_error` string — possibly *alongside* a partial `stems` array. The generation itself succeeded and every `audio` URL is valid: treat missing stems as a missing extra, never as a reason to retry or refund.
+- **Timing:** separation runs after generation finishes — typically another 2–6 min, giving up after 30 min (then `stems_error`).
+- **The four stem names are fixed** (htdemucs separation): melodic instruments — piano, synths, guitar, strings — land in `other`.
+- **Formats:** stems normally follow `output_format`; trust each stem's `content_type` for what was actually delivered.
 
 ## Prompting
 
@@ -145,6 +176,7 @@ generate once, iterate on the prompt, not on rerolls.
 - **`preserve_speech` for talking-head or narrated video:** if the source has dialogue/voiceover the user wants kept, set `preserve_speech=true`. Behavior differs by tool: on `video_to_music` you get the music, the isolated speech stem, *and* a ready-mixed combined file (the mux) — use the mux directly rather than re-mixing yourself. On `video_to_video_music` there's no separate stem or mux file; it just keeps the source speech audible in the single muxed output video.
 - **Want the video back with the score baked in?** Use `video_to_video_music` instead of `video_to_music` — same inputs, but the output is a new `.mp4`, not just audio. **Warn the user that the source audio is dropped by default**: if their video has dialogue, narration, or effects they expect to hear, pass `keep_original_sound=true` (add `ducking=true` to keep the voice on top), or `preserve_speech=true` for the isolated speech only. A "the music is there but my voiceover vanished" report is always this.
 - **Several takes in one go:** `variants_num=3` returns three distinct directions for one request instead of three re-rolls. It costs 3×, and it is never free-trial covered — say the price before calling.
+- **User wants the score's instruments as separate files** (to remix, re-balance, or drop one)? `stems=true` on `video_to_music` — it's free, but async-only and not on every surface yet, and it splits the generated music, never the source audio; see [Stems](#stems).
 - **Duration:** always matched to the source video automatically — don't ask for it.
 - **Need SFX too?** To generate music **and** sound effects for the same video in one balanced, single-charge call, use [video-to-sound](../video-to-sound) rather than calling this and [video-to-sfx](../video-to-sfx) separately.
 - **Don't know what it should sound like?** Run [video-analysis](../video-analysis) first: one call returns a section plan plus ready-to-use generation prompts read off the footage, which beats guessing a prompt and rerolling. It is a paid call that generates nothing, so use it when the brief is genuinely unclear — not when the user already told you what they want.
@@ -152,7 +184,7 @@ generate once, iterate on the prompt, not on rerolls.
 
 ## Recovering a Timed-Out Call
 
-`video_to_music` (without any of `preserve_speech`/`ducking`/`output_format="wav"`) streams its result in one call. Any variant that triggers the backend's async mode — and `video_to_video_music`, which is always async — can time out on a very long `TIME_OUT_SECONDS`. If it does, the error message includes a `task_id`; the generation keeps running (and is already charged) on the backend. Call `get_sfx_task(task_id)` — `get_generation_task(task_id)` on the hosted server — to retrieve the result once ready; see the [task-recovery](../task-recovery) skill.
+`video_to_music` (without any of `preserve_speech`/`ducking`/`stems`/`output_format="wav"`) streams its result in one call. Any variant that triggers the backend's async mode — and `video_to_video_music`, which is always async — can time out on a very long `TIME_OUT_SECONDS`. If it does, the error message includes a `task_id`; the generation keeps running (and is already charged) on the backend. Call `get_sfx_task(task_id)` — `get_generation_task(task_id)` on the hosted server — to retrieve the result once ready; see the [task-recovery](../task-recovery) skill.
 
 ## Output Files
 
