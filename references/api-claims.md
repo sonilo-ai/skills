@@ -48,7 +48,7 @@ Added 2026-08-17, verified against the shipped backend (live on REST `/v1/text-t
 - [x] Separation runs after generation: typically **+2–6 min**, gives up after **30 min**. Stems normally follow `output_format`; each stem's `content_type` reports what was delivered.
 - [x] On `video_to_music` it splits the **generated** music, never the video's own audio (source speech = `preserve_speech`, unrelated).
 - [x] The four stem names are fixed (htdemucs): melodic instruments land in `other`; on instrumental tracks `vocals` is near-silent — correct behavior, not a bug.
-- [x] ⚠️ **Surface gap as of 2026-08-17**: the local `sonilo-mcp` package (0.17.0) does not accept `stems` yet, and neither do the SDKs or CLIs — hosted MCP and REST only. Re-verify when the next sonilo-mcp release lands and update the two skills' surface notes plus `tests/tool_surface.json` (`--refresh` picks up the local block).
+- [x] **Surface gap closed 2026-08-17** (same day): sonilo-mcp 0.18.0, npm sonilo 0.16.0 / sonilo-cli 0.15.0, and PyPI sonilo 0.15.0 / sonilo-cli 0.14.0 all ship `stems`; `tests/tool_surface.json` refreshed against the published 0.18.0. Every surface now accepts it.
 
 ## Billing / general
 

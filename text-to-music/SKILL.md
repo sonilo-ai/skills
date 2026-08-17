@@ -96,7 +96,7 @@ curl -X POST "https://api.sonilo.com/v1/text-to-music" \
 | `duration` | int | — | Required. 1–360 seconds. Unlike the video tools, there is no source to take the length from, so you must set it. |
 | `variants_num` | int | `1` | 1–10. Generates that many distinct creative directions in one request — different takes, not re-renders of one. **Cost scales linearly with the count, and any value above 1 is never covered by the free trial**, so confirm the number with the user first. Above 1 writes one file per variant and forces the backend's async mode. |
 | `output_format` | string | `m4a` | `m4a` or `wav`. `wav` triggers the backend's async mode internally — no user-facing "mode" param needed. |
-| `stems` | bool | `false` | **Free.** Additionally splits each generated track into four separated instrument tracks — `drums`, `bass`, `vocals`, `other` — returned alongside the untouched full mix. Async-only on REST (`stems=true` without `mode=async` is a `400`). Live on REST and the **hosted** MCP server today; the local `sonilo-mcp` package does not accept it yet. See [Stems](#stems). |
+| `stems` | bool | `false` | **Free.** Additionally splits each generated track into four separated instrument tracks — `drums`, `bass`, `vocals`, `other` — returned alongside the untouched full mix. Async-only on REST (`stems=true` without `mode=async` is a `400`). See [Stems](#stems). |
 | `output_directory` | string | `SONILO_MCP_BASE_PATH` | Absolute, or relative to the base path. |
 
 ## Stems
@@ -121,7 +121,7 @@ result as a `stems` array next to `audio`:
 What matters when you use it:
 
 - **Async only on REST.** `stems=true` requires `mode=async` (a `400` otherwise): you get a `202` + `task_id` and poll `/v1/tasks/{task_id}`. The MCP tools are always async, so on the hosted server the param just works.
-- **Surfaces today: REST and the hosted MCP server.** The local `sonilo-mcp` package does not accept `stems` yet (its next release adds it), and the SDKs and CLIs don't expose it yet either — use the REST call or the hosted tool until they do.
+- **Available on every surface** (verified 2026-08-17): REST, the hosted MCP server, the local `sonilo-mcp` package (>= 0.18.0), the SDKs (`sonilo` npm >= 0.16.0, PyPI >= 0.15.0), and the CLIs (`--stems`, npm `sonilo-cli` >= 0.15.0, PyPI `sonilo-cli` >= 0.14.0).
 - **Match stems to tracks by `stream_index`, never by array position.** A stream whose separation failed is simply absent, so `stems` can be shorter than `audio`.
 - **`stems_error` is not a failed generation.** When separation failed wholly or partly, or was skipped, the task carries a `stems_error` string — possibly *alongside* a partial `stems` array. The generation itself succeeded and every `audio` URL is valid: treat missing stems as a missing extra, never as a reason to retry or refund.
 - **Timing:** separation runs after generation finishes — typically another 2–6 min, giving up after 30 min (then `stems_error`).

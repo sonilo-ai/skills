@@ -108,6 +108,7 @@
       "duration",
       "output_format",
       "variants_num",
+      "stems",
       "output_directory"
     ],
     "video_to_music": [
@@ -119,6 +120,7 @@
       "ducking",
       "variants_num",
       "prompt_influence",
+      "stems",
       "output_directory"
     ],
     "text_to_sfx": [
@@ -189,6 +191,12 @@
       "task_id",
       "output_directory"
     ],
+    "analyze_video": [
+      "video_path",
+      "video_url",
+      "prompt",
+      "variants_num"
+    ],
     "audio_ducking": [
       "voice_path",
       "voice_url",
@@ -202,12 +210,6 @@
     ],
     "play_audio": [
       "input_file_path"
-    ],
-    "analyze_video": [
-      "video_path",
-      "video_url",
-      "prompt",
-      "variants_num"
     ]
   },
   "cli": {
