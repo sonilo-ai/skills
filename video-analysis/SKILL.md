@@ -155,7 +155,7 @@ never both.
 
 | Parameter | Type | Default | Notes |
 |-----------|------|---------|-------|
-| `video_path` | string | — | Local server only. Absolute path, or relative to `SONILO_MCP_BASE_PATH`. Max **600s (10 min)**, subject to the account's upload-size cap. |
+| `video_path` | string | — | Local server only. Absolute path, or relative to `SONILO_MCP_BASE_PATH`. Max **360s (6 min)**, subject to the account's upload-size cap. |
 | `video_url` | string | — | HTTP(S) URL to a video file. Exactly one of `video_path`/`video_url`. The only input the hosted server accepts. |
 | `prompt` | string | — | Optional guidance for the analysis, e.g. "focus on the chase". Max 2000 characters. Steers what the analysis pays attention to; it is not the generation prompt. |
 | `variants_num` | int | `1` | 1–5. How many independent briefs to author for the same video — different creative directions, not rewordings of one. **Billed per brief**, so 3 variations cost 3×. Confirm the number with the user before calling. |
@@ -185,7 +185,7 @@ never both.
 - **Show, then generate.** With `variants_num > 1`, print the variations and let the user pick before spending on a generation. That is the whole point of paying for the analysis.
 - **The prompt parameter is not the music prompt.** `prompt` here tells the analyzer what to look at; the music prompt is what comes *back*. Passing "cinematic strings" as `prompt` narrows the analysis, it doesn't set the score.
 - **Cheap relative to a wrong generation.** A 10-second billing floor plus one brief usually costs less than one rerolled video-to-video render — but say the price before calling either way.
-- **Duration cap is 600s**, more generous than every generation endpoint (360s for music, 300s for dubbing, 180s for SFX/sound). A video can be analyzable but too long to score in one call.
+- **Duration cap is 360s (6 min)**, the same as the music endpoints, above dubbing (300s) and the SFX/sound ones (180s). Lowered from 600s on 2026-08-20 — 600s was never real, since a shared 360s probe ceiling had always rejected longer sources first. A video can still be analyzable but too long to score with SFX or sound in one call.
 - **Content restriction:** as everywhere in Sonilo, prompts cannot reference specific artists, bands, or copyrighted lyrics — and the returned variations will not either.
 
 ## Recovering a Timed-Out Call
@@ -203,7 +203,7 @@ a brief you already own.
 ## Error Handling
 
 Common errors: `401` invalid key, `402` insufficient balance / trial exhausted,
-`413` file too large, `422` invalid parameters (video over the 600 s cap, a
+`413` file too large, `422` invalid parameters (video over the 360 s cap, a
 video with no video stream, `variants_num` outside 1–5), `429` rate limit. A
 failed analysis carries `error.code` `ANALYSIS_FAILED` and is refunded. `503`
 means video analysis is temporarily disabled server-side — it is not a key or
