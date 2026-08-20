@@ -27,7 +27,7 @@ Every numeric limit and behavior claim used by the skills in this repo, verified
 Added 2026-08-16 with the endpoint itself; verified against the shipped backend and the live
 `platform.sonilo.com/openapi.json`, not against an engineering conversation.
 
-- [x] **Cap 600 s** — the most generous cap of any endpoint (music is 360 s, SFX/sound/dubbing 180 s). A video can be analyzable and still too long to score in one call. Over-cap = **422 reject**.
+- [x] **Cap 600 s** — the most generous cap of any endpoint (music is 360 s, dubbing 300 s, SFX/sound 180 s). A video can be analyzable and still too long to score in one call. Over-cap = **422 reject**.
 - [x] **Generates nothing.** No audio, no video, no artifact. The result is `segments` (whole-second `start`/`end`, a `label`, and a per-stretch `prompt`) plus `variations` (one generation `prompt` each). This is the only Sonilo task type with no media in its envelope, which is why every client surfaces it as text rather than a saved file.
 - [x] `variants_num` **1-5**, billed per brief — narrower than the music endpoints' 1-10. `prompt` ≤ 2000 chars, and it steers the **analysis**, not the score.
 - [x] **10-second billing floor**: a fixed per-request output cost regardless of clip length, so a 3-second clip costs the same as a 10-second one.

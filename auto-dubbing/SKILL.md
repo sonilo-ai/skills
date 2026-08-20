@@ -114,7 +114,7 @@ curl -X POST "https://api.sonilo.com/v1/dubbing" \
 
 | Parameter | Type | Default | Notes |
 |-----------|------|---------|-------|
-| `video_path` | string | — | `.mp4/.mov/.webm/.m4v/.gif` (gif must be animated). Max **180s (3 min)**, subject to the account's upload-size cap. |
+| `video_path` | string | — | `.mp4/.mov/.webm/.m4v/.gif` (gif must be animated). Max **300s (5 min)**, subject to the account's upload-size cap. |
 | `video_url` | string | — | **Must be https** (not just http). Exactly one of `video_path`/`video_url`. |
 | `languages` | list[str] | `["zh_cn", "es", "fr"]` | Target language codes. Supported: `en`, `zh_cn`, `ja`, `ko`, `pt`, `es`, `de`, `fr`, `it`, `ru`. **Omitting this still dubs into 3 languages and bills for 3** — pass an explicit single-element list if the user only wants one. |
 | `output_directory` | string | `SONILO_MCP_BASE_PATH` | Absolute, or relative to the base path. |
