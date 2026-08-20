@@ -455,6 +455,7 @@
     "_comment": "Strings that were true once. Each maps to what to say instead.",
     "sks_": "keys are `sk-` prefixed",
     "narrower tool coverage": "the hosted server carries the full tool set",
-    "SONILO_API_KEY is required": "a key is optional since sonilo-mcp 0.16.0 \u2014 `sonilo login` also works"
+    "SONILO_API_KEY is required": "a key is optional since sonilo-mcp 0.16.0 \u2014 `sonilo login` also works",
+    "SFX/sound/dubbing": "dubbing's cap is 300 s (5 min); only SFX and sound are still 180 s"
   }
 }

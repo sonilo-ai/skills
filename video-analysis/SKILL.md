@@ -185,7 +185,7 @@ never both.
 - **Show, then generate.** With `variants_num > 1`, print the variations and let the user pick before spending on a generation. That is the whole point of paying for the analysis.
 - **The prompt parameter is not the music prompt.** `prompt` here tells the analyzer what to look at; the music prompt is what comes *back*. Passing "cinematic strings" as `prompt` narrows the analysis, it doesn't set the score.
 - **Cheap relative to a wrong generation.** A 10-second billing floor plus one brief usually costs less than one rerolled video-to-video render — but say the price before calling either way.
-- **Duration cap is 600s**, more generous than every generation endpoint (360s for music, 180s for SFX/sound/dubbing). A video can be analyzable but too long to score in one call.
+- **Duration cap is 600s**, more generous than every generation endpoint (360s for music, 300s for dubbing, 180s for SFX/sound). A video can be analyzable but too long to score in one call.
 - **Content restriction:** as everywhere in Sonilo, prompts cannot reference specific artists, bands, or copyrighted lyrics — and the returned variations will not either.
 
 ## Recovering a Timed-Out Call
