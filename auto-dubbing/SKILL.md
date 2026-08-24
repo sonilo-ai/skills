@@ -116,7 +116,7 @@ curl -X POST "https://api.sonilo.com/v1/dubbing" \
 |-----------|------|---------|-------|
 | `video_path` | string | — | `.mp4/.mov/.webm/.m4v/.gif` (gif must be animated). Max **300s (5 min)**, subject to the account's upload-size cap. |
 | `video_url` | string | — | **Must be https** (not just http). Exactly one of `video_path`/`video_url`. |
-| `languages` | list[str] | `["zh_cn", "es", "fr"]` | Target language codes. Supported: `en`, `zh_cn`, `ja`, `ko`, `pt`, `pt_br`, `es`, `es_419`, `de`, `fr`, `it`, `ru`, `th`. `pt_br` is Brazilian Portuguese and `es_419` Latin American Spanish; plain `pt`/`es` are unqualified, so ask which the user wants when it matters. **Omitting this still dubs into 3 languages and bills for 3** — pass an explicit single-element list if the user only wants one. |
+| `languages` | list[str] | `["zh_cn", "es", "fr"]` | Target language codes. Supported: `en`, `zh_cn`, `ja`, `ko`, `pt`, `pt_br`, `es`, `es_419`, `de`, `fr`, `it`, `ru`, `th`, `ar`, `tr`, `vi`, `id`. `pt_br` is Brazilian Portuguese and `es_419` Latin American Spanish; plain `pt`/`es` are unqualified, so ask which the user wants when it matters. `ar` is unqualified Arabic rather than a country dialect, so there is nothing to ask there. **Omitting this still dubs into 3 languages and bills for 3** — pass an explicit single-element list if the user only wants one. |
 | `output_directory` | string | `SONILO_MCP_BASE_PATH` | Absolute, or relative to the base path. |
 
 ## Workflow Tips
