@@ -108,7 +108,7 @@ curl -X POST "https://api.sonilo.com/v1/dubbing" \
 
 | Tool | Description |
 |------|-------------|
-| `dubbing(video_path? \| video_url?, languages?, output_directory?)` | Dub a video into each requested language; one `.mp4` saved per language. |
+| `dubbing(video_path? \| video_url?, languages?, lipsync?, output_directory?)` | Dub a video into each requested language; one `.mp4` saved per language. |
 
 ## Parameters
 
@@ -117,11 +117,13 @@ curl -X POST "https://api.sonilo.com/v1/dubbing" \
 | `video_path` | string | — | `.mp4/.mov/.webm/.m4v/.gif` (gif must be animated). Max **300s (5 min)**, subject to the account's upload-size cap. |
 | `video_url` | string | — | **Must be https** (not just http). Exactly one of `video_path`/`video_url`. |
 | `languages` | list[str] | `["zh_cn", "es", "fr"]` | Target language codes. Supported: `en`, `zh_cn`, `ja`, `ko`, `pt`, `pt_br`, `es`, `es_419`, `de`, `fr`, `it`, `ru`, `th`, `ar`, `tr`, `vi`, `id`. `pt_br` is Brazilian Portuguese and `es_419` Latin American Spanish; plain `pt`/`es` are unqualified, so ask which the user wants when it matters. `ar` is unqualified Arabic rather than a country dialect, so there is nothing to ask there. **Omitting this still dubs into 3 languages and bills for 3** — pass an explicit single-element list if the user only wants one. |
+| `lipsync` | bool | `true` | Whether the speaker's mouth is re-rendered to match the dubbed speech. Set `false` to leave the picture completely untouched instead — the video comes back at its original resolution and frame rate rather than re-rendered, and only the audio is replaced, so the mouths keep moving to the original language. Reach for it when the footage has no on-camera speaker (screen recordings, b-roll, voice-over), or when preserving the exact original picture matters more than matching lip movement. Same price either way. |
 | `output_directory` | string | `SONILO_MCP_BASE_PATH` | Absolute, or relative to the base path. |
 
 ## Workflow Tips
 
 - **Always ask which language(s)** if the user hasn't said, rather than relying on the `["zh_cn", "es", "fr"]` default — that default silently bills for three languages.
+- **Consider `lipsync=false` when nobody is speaking on camera.** Screen recordings, b-roll and voice-over have no mouth to match, and lip-syncing them re-renders the picture for no benefit — the original frames are returned untouched instead, at their own resolution and frame rate. Do not turn it off on a talking-head video unless the user asks: the mouths will visibly keep speaking the original language.
 - **This is not the music or SFX skills** ([text-to-music](../text-to-music), [video-to-music](../video-to-music), [text-to-sfx](../text-to-sfx), [video-to-sfx](../video-to-sfx)). It doesn't touch music/SFX at all — it translates and re-voices existing speech.
 - **Set expectations on time.** Tell the user up front this can take up to ~2 hours and that walking away is fine — the result is recoverable afterward.
 - Because there is no free trial here at all, if the account is self-serve and hasn't added a payment method, warn the user before calling rather than letting it fail with `trial_exhausted` (which doesn't even apply — dubbing bills immediately regardless of trial status). Check `get_account_services` (see [account](../account)) if unsure about billing status.
