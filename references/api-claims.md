@@ -50,6 +50,23 @@ Added 2026-08-17, verified against the shipped backend (live on REST `/v1/text-t
 - [x] The four stem names are fixed (htdemucs): melodic instruments land in `other`; on instrumental tracks `vocals` is near-silent — correct behavior, not a bug.
 - [x] **Surface gap closed 2026-08-17** (same day): sonilo-mcp 0.18.0, npm sonilo 0.16.0 / sonilo-cli 0.15.0, and PyPI sonilo 0.15.0 / sonilo-cli 0.14.0 all ship `stems`; `tests/tool_surface.json` refreshed against the published 0.18.0. Every surface now accepts it.
 
+## dubbing subtitle scripts (`subtitles` + `export_srt`)
+
+Added 2026-09-13, verified against the shipped backend and a paid production run, not against an engineering conversation.
+
+- [x] `subtitles` is **one script per target language**, wired as Stripe-style bracket keys on the multipart body (`subtitles[<language>]`). Each value is an uploaded `.srt`/`.vtt` part **or** an https URL string. A bare `subtitles` key, a repeated key, or a near-miss code (`subtitles[zh-CN]`; the codes use underscores) is **refused, never silently ignored**.
+- [x] **Full coverage enforced**: the key set must equal `languages` exactly, and the `422` names the missing or extra code. This bites the caller who omits `languages` — the server default is still `["zh_cn", "es", "fr"]`, so all three need a script. The clients deliberately do **not** duplicate this check, precisely so that default keeps working.
+- [x] **Target-language scripts**, carrying the lines to be spoken — not source transcripts. The preflight reads the text and rejects a script whose language is not the one it was submitted under.
+- [x] Per-file limits: extension `.srt`/`.vtt`, lower-cased, **at most 1 MiB**. The size cap is server-owned; clients do not copy it.
+- [x] `export_srt` (bool, **default false**) **requires `subtitles`** — alone it is a `422`. It force-aligns each language's delivered audio against that language's script and returns the lines re-timed, **verbatim**.
+- [x] Every rule above is checked **before anything is charged**. A blocked preflight is `422` `code: SUBTITLE_PREFLIGHT_BLOCKED`, naming the blocked languages and their issue codes, with `details: {<language>: <report>}`.
+- [x] ⚠️ **A blocked export does NOT fail the task.** The dubbed videos are still delivered and charged; `subtitles` simply lacks that language. `subtitle_export[lang].status` is `exported`, `exported_review_required` or `blocked`.
+- [x] Result envelope: `outputs` (unchanged) plus `subtitles: {<language>: <srt url>}` (only with `export_srt`), `subtitle_preflight` and `subtitle_export`. The `202` also carries `subtitle_preflight`.
+- [x] ⚠️ **Report numbers can arrive as strings.** They are stored as DynamoDB numbers, so on a finished task `cue_count` may be `"5"` and `alignment_loss` `"0.6305176995017312"`. Anything surfacing them must tolerate both a string and a number.
+- [x] ⚠️ **Input differs by MCP server**, the same split as `video_path`: the hosted server takes https URLs only (it has no filesystem to read a path from); local `sonilo-mcp` and both SDKs and CLIs take a local `.srt`/`.vtt` path or an https URL. In JS a `File` is also accepted; blobs, byte arrays and streams are not, because the server needs a filename to check the extension.
+- [x] **Surface gap, open as of 2026-09-13**: live on REST and the hosted MCP server. Merged but **not published** — sonilo-mcp 0.23.0, PyPI `sonilo` 0.17.0 / `sonilo-cli` 0.16.0, npm `sonilo` / `sonilo-cli` (versions computed by changesets). Both CLIs gain `--subtitle <lang>=<path-or-url>` (repeatable) and `--export-srt`. `tests/tool_surface.json` records the hosted surface now and picks up `local.dubbing` when 0.23.0 reaches PyPI.
+- [x] `lipsync` (bool, **default true**) shipped just ahead of this, in sonilo-mcp 0.22.0 and on the hosted server. `false` skips the mouth re-render: the deliverable keeps the source's own frames, resolution and frame rate, and only the audio is replaced. Absent must mean true — that is what every dubbing task did before the parameter existed.
+
 ## Billing / general
 
 - [x] Charged up front at submission; **failed generations auto-refunded**. Caller retries = new charge. **No preview/low-cost mode.** Music + SFX = separate task types, separate per-second rates, separate prepay minute pools. `variants_num` scales v2m cost linearly; N>1 never covered by free trial.
