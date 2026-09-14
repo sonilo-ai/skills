@@ -11,10 +11,10 @@
     "skill naming one must name the other too, or it breaks for half the users."
   ],
   "_generated": {
-    "local_from": "sonilo-mcp 0.17.0 (PyPI)",
+    "local_from": "sonilo-mcp 0.22.0 (PyPI)",
     "hosted_from": "sonilo-api-dashboard backend/app/mcp_server.py",
-    "date": "2026-08-17",
-    "_note": "`stems` is hosted-only for now: the deployed hosted server has it on text_to_music and video_to_music, the published sonilo-mcp 0.17.0 does not yet. When the next sonilo-mcp release ships it, --refresh will pick it up here."
+    "date": "2026-09-13",
+    "_note": "`lipsync` shipped on both servers (hosted, and sonilo-mcp 0.22.0) and was documented here for a release before it was recorded — see the Tool-signature check in validate.py, which is what now catches that."
   },
   "hosted": {
     "get_account_services": [],
@@ -94,7 +94,8 @@
     "dubbing": [
       "video_url",
       "languages",
-      "ducking"
+      "ducking",
+      "lipsync"
     ],
     "analyze_video": [
       "video_url",
@@ -185,6 +186,7 @@
       "video_url",
       "languages",
       "ducking",
+      "lipsync",
       "output_directory"
     ],
     "get_sfx_task": [
@@ -219,7 +221,10 @@
       "Recorded because this repo repeatedly claimed a command did not exist",
       "after it shipped: six 'no CLI command for video_to_video_*' lines",
       "survived a whole repo restructure. A claim about the CLI is now",
-      "checkable, the same way a claim about a tool already was."
+      "checkable, the same way a claim about a tool already was.",
+      "",
+      "Unlike `local`, nothing re-derives this block automatically, so it is",
+      "updated by hand from `sonilo --help` when a release lands."
     ],
     "commands": [
       "login",
@@ -406,9 +411,10 @@
     }
   },
   "defaults": {
-    "_comment": "Schema defaults, read from the installed server's inputSchema. Only booleans are machine-checkable today; a docs table stating the opposite fails the build.",
+    "_comment": "Schema defaults, read from the installed server's inputSchema. Only booleans are machine-checkable today; a docs table stating the opposite fails the build. Keyed by parameter name, not by tool, so a name whose default differs between tools (`ducking`: on for async music, off for dubbing) cannot be recorded here.",
     "preserve_speech": "false",
-    "keep_original_sound": "false"
+    "keep_original_sound": "false",
+    "lipsync": "true"
   },
   "must_document": {
     "_comment": "Parameters that change behaviour or cost enough that a skill covering the tool has to mention them. A parameter here that appears nowhere in the repo fails the build.",
@@ -442,7 +448,8 @@
     ],
     "dubbing": [
       "languages",
-      "ducking"
+      "ducking",
+      "lipsync"
     ],
     "video_to_sfx": [
       "segments"
