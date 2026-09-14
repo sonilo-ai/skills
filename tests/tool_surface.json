@@ -11,10 +11,10 @@
     "skill naming one must name the other too, or it breaks for half the users."
   ],
   "_generated": {
-    "local_from": "sonilo-mcp 0.22.0 (PyPI)",
+    "local_from": "sonilo-mcp 0.23.0 (PyPI)",
     "hosted_from": "sonilo-api-dashboard backend/app/mcp_server.py",
-    "date": "2026-09-13",
-    "_note": "`subtitles` and `export_srt` on dubbing are hosted-only for now: the deployed hosted server takes both (URLs only there — it has no filesystem), and sonilo-mcp ships them in 0.23.0, which is merged but not on PyPI. They are deliberately absent from `local.dubbing` until it publishes, because CI re-installs the published wheel weekly and --refresh would fail on a surface the package does not have yet. Add them here when 0.23.0 is out; --refresh will then agree."
+    "date": "2026-09-14",
+    "_note": "`subtitles` and `export_srt` on dubbing are on both surfaces as of sonilo-mcp 0.23.0. They differ in what a value may be: the hosted server has no filesystem and takes https URLs only, while the local one also takes a .srt/.vtt path under SONILO_MCP_BASE_PATH."
   },
   "hosted": {
     "get_account_services": [],
@@ -189,6 +189,8 @@
       "languages",
       "ducking",
       "lipsync",
+      "subtitles",
+      "export_srt",
       "output_directory"
     ],
     "get_sfx_task": [
@@ -473,7 +475,7 @@
     "_comment": "Strings that were true once. Each maps to what to say instead.",
     "sks_": "keys are `sk-` prefixed",
     "narrower tool coverage": "the hosted server carries the full tool set",
-    "SONILO_API_KEY is required": "a key is optional since sonilo-mcp 0.16.0 \u2014 `sonilo login` also works",
+    "SONILO_API_KEY is required": "a key is optional since sonilo-mcp 0.16.0 — `sonilo login` also works",
     "SFX/sound/dubbing": "dubbing's cap is 300 s (5 min); only SFX and sound are still 180 s"
   }
 }
