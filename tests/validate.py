@@ -14,10 +14,11 @@ What it checks:
      server, and anything that exists on only one is labelled as such. This is
      the check that catches `get_sfx_task` being told to hosted-plugin users, who
      have `get_generation_task` instead.
-  3. Parameters — every parameter a skill passes exists on that tool, and every
-     parameter in `must_document` appears somewhere in the repo. The first
-     direction catches invention; the second catches silence about a flag that
-     changes cost or output.
+  3. Parameters — every parameter a skill passes exists on that tool, every
+     parameter named in a skill's Tool-table signature exists on that tool, and
+     every parameter in `must_document` appears somewhere in the repo. The first
+     two directions catch invention and a surface left stale behind the prose;
+     the third catches silence about a flag that changes cost or output.
   4. Banned tokens — strings that were true once (see tool_surface.json).
 
 Run: python tests/validate.py            # offline, this is what CI runs
@@ -173,6 +174,41 @@ def check_parameters(surface: dict, docs: dict[Path, str]) -> None:
             fail("coverage", f"`{param}` (on {tool}) is missing from the skill(s) that "
                              f"cover it — {where}{elsewhere}; it changes cost or what "
                              "the output contains")
+
+
+def check_tool_signatures(surface: dict, docs: dict[Path, str]) -> None:
+    """Every parameter named in a skill's Tool-table signature must be real.
+
+    Each skill's `## Tool` table states a signature — `dubbing(video_path? |
+    video_url?, languages?, ...)` — and it is the densest claim in the file: an
+    agent reads it to decide what it may pass. Nothing checked it. The call-site
+    check above only fires on a `tool(param=…)` example, so a parameter that
+    appears in the signature and in no example was unverified, and the prose can
+    move ahead of `tool_surface.json` with no failure anywhere.
+
+    That is exactly what happened to `lipsync`: it shipped, auto-dubbing grew a
+    signature entry and a parameter row for it, and the recorded surface was
+    never updated — leaving `hosted.dubbing` two releases stale with a green
+    build. This check reads the signature as what it is, a claim about the tool.
+    """
+    hosted, local = surface["hosted"], surface["local"]
+    for path, text in docs.items():
+        if path.name != "SKILL.md":
+            continue
+        rel = path.relative_to(ROOT)
+        # A table row whose first cell is a whole signature. The `|` separating
+        # alternatives is escaped in the markdown, so the cell ends at the
+        # backtick, not at the first pipe.
+        for row in re.finditer(r"^\|\s*`([a-z][a-z0-9_]*)\(([^`]*)\)`", text, re.M):
+            tool, args = row.group(1), row.group(2)
+            if tool not in hosted and tool not in local:
+                continue  # check_tool_names already reports an unknown tool
+            valid = set(hosted.get(tool, [])) | set(local.get(tool, []))
+            for param in re.findall(r"[a-z][a-z0-9_]*", args):
+                if param not in valid:
+                    fail(str(rel), f"`{tool}(…{param}…)` in the Tool table — "
+                                   f"{tool} has no `{param}` parameter on either "
+                                   "server")
 
 
 def check_documented_defaults(surface: dict, docs: dict[Path, str]) -> None:
@@ -342,6 +378,7 @@ def main() -> int:
         check_frontmatter(skill.parent, docs[skill])
     check_tool_names(surface, docs)
     check_parameters(surface, docs)
+    check_tool_signatures(surface, docs)
     check_documented_defaults(surface, docs)
     check_cli_claims(surface, docs)
     check_banned_tokens(surface, docs)
