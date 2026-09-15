@@ -1,6 +1,6 @@
 ---
 name: text-to-sfx
-description: Generate a sound effect from a text description using Sonilo — a UI chime, a whoosh, an impact, ambience, a stylized cue — when there is no video to match. Use when the user describes the sound they want in words and gives a duration. For SFX matched to footage, use the video-to-sfx skill; for music, use text-to-music.
+description: Generate a sound effect from a text description using Sonilo — a UI chime, a whoosh, an impact, ambience, a stylized cue — when there is no video to match. Use when the user describes the sound they want in words, with or without a length. For SFX matched to footage, use the video-to-sfx skill; for music, use text-to-music.
 license: MIT
 compatibility: "Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill."
 allowed-tools: Bash, Read, Write, mcp__sonilo__*
@@ -87,14 +87,14 @@ The endpoint returns `{"task_id": ...}` (HTTP 202) and the result is fetched fro
 
 | Tool | Description |
 |------|-------------|
-| `text_to_sfx(prompt, duration, audio_format?, output_directory?)` | Generate one SFX clip from a text description only. |
+| `text_to_sfx(prompt, duration?, audio_format?, output_directory?)` | Generate one SFX clip from a text description only. |
 
 ## Parameters
 
 | Parameter | Type | Default | Notes |
 |-----------|------|---------|-------|
 | `prompt` | string | — | Required. 1–2000 chars. |
-| `duration` | int | — | Required. 1–180 seconds. There is no source to take the length from, so you must set it. |
+| `duration` | number | Sonilo's own default | Optional, 0.5–180 seconds. Omit it when the user names no length — do not invent one. Fractional values are allowed: the shortest effects, a latch or a click, run well under a second. |
 | `audio_format` | string | `aac` (`.m4a`) | `wav`, `mp3`, `aac`, or `flac`. |
 | `output_directory` | string | `SONILO_MCP_BASE_PATH` | Absolute, or relative to the base path. |
 

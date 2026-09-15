@@ -1,6 +1,6 @@
 ---
 name: text-to-music
-description: Generate music from a text prompt using Sonilo — instrumental tracks, background beds, jingles, loops — when there is no video to score. Use when the user describes the music they want in words and gives a duration. Every track is licensed and cleared for commercial use. For scoring an existing video, use the video-to-music skill instead.
+description: Generate music from a text prompt using Sonilo — instrumental tracks, background beds, jingles, loops — when there is no video to score. Use when the user describes the music they want in words, with or without a length. Every track is licensed and cleared for commercial use. For scoring an existing video, use the video-to-music skill instead.
 license: MIT
 compatibility: "Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill."
 allowed-tools: Bash, Read, Write, mcp__sonilo__*
@@ -86,14 +86,14 @@ curl -X POST "https://api.sonilo.com/v1/text-to-music" \
 
 | Tool | Description |
 |------|-------------|
-| `text_to_music(prompt, duration, output_format?, variants_num?, stems?, output_directory?)` | Generate music from a text description only — no video. |
+| `text_to_music(prompt, duration?, output_format?, variants_num?, stems?, output_directory?)` | Generate music from a text description only — no video. |
 
 ## Parameters
 
 | Parameter | Type | Default | Notes |
 |-----------|------|---------|-------|
 | `prompt` | string | — | Required. 1–1000 chars. |
-| `duration` | int | — | Required. 1–360 seconds. Unlike the video tools, there is no source to take the length from, so you must set it. |
+| `duration` | int | inferred from the prompt | Optional, 5–360 seconds. Omit it when the user names no length — Sonilo reads one out of the prompt, so a "short jingle" comes back short and a "full-length closing-credits piece" comes back long. **A vague prompt infers a long track ("lofi" alone resolves to about 180 seconds) and you are billed for it**, so ask the user for a length when the cost matters. |
 | `variants_num` | int | `1` | 1–10. Generates that many distinct creative directions in one request — different takes, not re-renders of one. **Cost scales linearly with the count, and any value above 1 is never covered by the free trial**, so confirm the number with the user first. Above 1 writes one file per variant and forces the backend's async mode. |
 | `output_format` | string | `m4a` | `m4a` or `wav`. `wav` triggers the backend's async mode internally — no user-facing "mode" param needed. |
 | `stems` | bool | `false` | **Free.** Additionally splits each generated track into four separated instrument tracks — `drums`, `bass`, `vocals`, `other` — returned alongside the untouched full mix. Async-only on REST (`stems=true` without `mode=async` is a `400`). See [Stems](#stems). |
