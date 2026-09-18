@@ -14,7 +14,7 @@
     "local_from": "sonilo-mcp 0.25.0 (PyPI)",
     "hosted_from": "sonilo-api-dashboard backend/app/mcp_server.py",
     "date": "2026-09-18",
-    "_note": "`subtitles` and `export_srt` on dubbing are on both surfaces as of sonilo-mcp 0.23.0. They differ in what a value may be: the hosted server has no filesystem and takes https URLs only, while the local one also takes a .srt/.vtt path under SONILO_MCP_BASE_PATH. `mode` on analyze_video (both/music/sfx, default both) is live on the hosted server and recorded on `local.analyze_video` and the CLI's `--mode` ahead of the sonilo-mcp / sonilo-cli releases that carry it; --refresh agrees once the next sonilo-mcp is on PyPI."
+    "_note": "`subtitles` and `export_srt` on dubbing are on both surfaces as of sonilo-mcp 0.23.0. They differ in what a value may be: the hosted server has no filesystem and takes https URLs only, while the local one also takes a .srt/.vtt path under SONILO_MCP_BASE_PATH. `mode` on analyze_video (both/music/sfx, default both) is live on the hosted server and recorded on `local.analyze_video` and the CLI's `--mode` ahead of the sonilo-mcp / sonilo-cli releases that carry it; --refresh agrees once the next sonilo-mcp is on PyPI. The `proofread` entries (hosted, local, the `proofread` CLI command and its flags) were recorded BY HAND from the unreleased sonilo-mcp 0.26.0 / sonilo-cli 0.19.0 sources on 2026-09-18 — none of those releases are published yet, so `--refresh` cannot see them and would report `proofread` as removed until sonilo-mcp 0.26.0 lands on PyPI."
   },
   "hosted": {
     "get_account_services": [],
@@ -98,6 +98,11 @@
       "lipsync",
       "subtitles",
       "export_srt"
+    ],
+    "proofread": [
+      "video_url",
+      "languages",
+      "source_language"
     ],
     "analyze_video": [
       "video_url",
@@ -194,6 +199,13 @@
       "export_srt",
       "output_directory"
     ],
+    "proofread": [
+      "video_path",
+      "video_url",
+      "languages",
+      "source_language",
+      "output_directory"
+    ],
     "get_sfx_task": [
       "task_id",
       "output_directory"
@@ -251,6 +263,7 @@
       "video-to-video-sound",
       "audio-ducking",
       "dubbing",
+      "proofread",
       "tasks",
       "video-analysis"
     ],
@@ -265,6 +278,7 @@
       "video_to_video_sound": "video-to-video-sound",
       "audio_ducking": "audio-ducking",
       "dubbing": "dubbing",
+      "proofread": "proofread",
       "get_sfx_task": "tasks",
       "get_generation_task": "tasks",
       "get_account_services": "account",
@@ -316,6 +330,14 @@
         "logout": [
           "--api-base",
           "--local-only"
+        ],
+        "proofread": [
+          "--languages",
+          "--output",
+          "--source-language",
+          "--timeout",
+          "--video",
+          "--video-url"
         ],
         "tasks": [
           "--poll-interval",
@@ -473,6 +495,10 @@
     "analyze_video": [
       "variants_num",
       "mode"
+    ],
+    "proofread": [
+      "languages",
+      "source_language"
     ]
   },
   "banned_tokens": {

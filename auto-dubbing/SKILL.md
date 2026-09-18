@@ -168,7 +168,11 @@ One `subtitles[<language>]` field per language, each either an uploaded `.srt`/`
 ## Bringing Your Own Scripts
 
 Use `subtitles` when the user already has approved translations and wants them
-spoken word for word. Every rule below is checked before anything is charged, so
+spoken word for word. If the user wants to *review or correct* the translation
+before it is spoken and has no script yet, run the [proofread](../proofread)
+skill first — it returns one editable `.srt` per language, and the corrected
+files are exactly what `subtitles` takes (dropping its source-language file,
+which is an extra key here). Every rule below is checked before anything is charged, so
 breaking one costs a `422` and not money — but it also costs the user a round
 trip, and the first two are easy to get wrong:
 
