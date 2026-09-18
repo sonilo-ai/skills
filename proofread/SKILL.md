@@ -1,6 +1,6 @@
 ---
 name: proofread
-description: Transcribe a video with Sonilo and translate the transcript into editable `.srt` files — one per target language, plus the detected source language — so the wording can be read and corrected before anything is dubbed. Nothing is spoken and no video is produced — this is the step *before* dubbing, and the corrected files go back to the `dubbing` tool as `subtitles` so the dub speaks exactly the approved lines. Use when the user wants to review, approve or fix the translation before dubbing, wants editable subtitles or a transcript of a video, or wants the dub to say their exact wording. Billed per target language (a transcript-only run counts as one), with 2 free-trial runs on self-serve accounts — confirm the language list with the user before calling.
+description: Transcribe a video with Sonilo and translate the transcript into editable .srt files — one per target language, plus the detected source language — so the wording can be read and corrected before anything is dubbed. Nothing is spoken and no video is produced; this is the step before dubbing, and the corrected files go back to the dubbing tool as subtitles so the dub speaks exactly the approved lines. Use when the user wants to review, approve or fix the translation before dubbing, wants editable subtitles or a transcript of a video, or wants the dub to say their exact wording. Billed per target language (a transcript-only run counts as one), with 2 free-trial runs on self-serve accounts — confirm the language list with the user before calling.
 license: MIT
 compatibility: "Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill."
 allowed-tools: Bash, Read, Write, mcp__sonilo__*
@@ -193,7 +193,7 @@ other, never both.
 
 | Parameter | Type | Default | Notes |
 |-----------|------|---------|-------|
-| `video_path` | string | — | Local server only. Absolute path, or relative to `SONILO_MCP_BASE_PATH`. Max **300s (5 min)**, max **300 MB**, and **the video must have an audio track** — there is nothing to transcribe without one, and it is rejected before any charge. |
+| `video_path` | string | — | Local server only. Absolute path, or relative to `SONILO_MCP_BASE_PATH`. Max **300s (5 min)**, max **300 MB**, and **the video must have an audio track** — there is nothing to transcribe without one, so a video lacking one is rejected rather than transcribed. |
 | `video_url` | string | — | **Must be https** (not just http). Exactly one of `video_path`/`video_url`. The only input the hosted server accepts. Same 300s / 300 MB / audio-track rules. |
 | `languages` | list[str] | — (transcript only) | Target languages to translate the transcript into, e.g. `["es", "fr"]`. **The same codes as `dubbing`** — see the [auto-dubbing](../auto-dubbing) skill's `languages` row for the list and for what `pt_br`, `es_419`, `pa_in` and `sd_in` mean — so a proofread script can go straight into a dub. Omit it, or pass `[]`, for the source-language transcript alone. An unsupported code is a `422` before anything is charged. **Billed per language**, so this list is the price. |
 | `source_language` | string | — (detected) | A hint telling transcription which language to expect, one of the same codes. It helps on short, noisy or mixed-language audio. Omit it to have the language detected; either way the result reports the language the transcript is actually in, and that detected code keys the source-language file. Free — it is a hint, not an extra language. |
@@ -229,8 +229,7 @@ other, never both.
 - **`source_language`** is the language the transcript is in, whatever hint was
   sent. It is the key the source-language file appears under.
 - **`cue_count`** is the number of subtitle cues in the source script. Every
-  language has the same count — translation is cue by cue, which is what keeps
-  the scripts interchangeable with the dub's timing.
+  language has the same count, since translation is cue by cue.
 - **`warnings`** maps a language to **non-blocking** issues in its script, and
   is empty when there are none. Each issue carries `cue` (1-based), `code`,
   `severity`, plus whatever measurement that code brought with it (e.g.
@@ -328,10 +327,14 @@ they expire.
 ## Error Handling
 
 Common errors: `401` invalid key, `402` insufficient balance / trial exhausted,
-`413` file too large, `422` invalid parameters (over the 300s cap, over 300 MB,
-a video with no audio track, an unsupported language code, both or neither of
-`video_path`/`video_url`, a non-https `video_url`), `429` rate limit. Every
-`422` lands before anything is charged.
+`413` file too large, `422` invalid parameters (an unsupported language code,
+both or neither of `video_path`/`video_url`, a non-https `video_url`), `429`
+rate limit. An unsupported language code is a `422` before anything is charged.
+
+A video over the 300s cap, over 300 MB, or with no audio track is rejected
+rather than transcribed. On both MCP servers the duration and audio-track rules
+are checked before the request is even made, so they reach you as a tool error
+rather than as an HTTP status.
 
 A failed task carries an `error.code` of `SOURCE_DOWNLOAD_FAILED`,
 `SOURCE_PROCESSING_FAILED`, `TRANSCRIPTION_EMPTY`, `TRANSCRIPTION_FAILED`,

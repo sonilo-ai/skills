@@ -70,15 +70,18 @@ Added 2026-09-13, verified against the shipped backend and a paid production run
 
 ## proofread
 
-Added 2026-09-18 with `POST /v1/proofread`. Verified against the live API on 2026-09-16 (a paid
-production run, plus the shipped docs contract extracted 2026-09-18) — not against an engineering
-conversation.
+Added 2026-09-18 with `POST /v1/proofread`. Verified against the live API and one paid
+multi-language run on 2026-09-16; the request/response contract, the error-code list and the
+billing numbers are from the shipped docs contract extracted 2026-09-18, and the per-surface
+differences from the client sources. Not from an engineering conversation.
 
-- [x] **Cap 300 s and 300 MB**, the same as dubbing. Over-cap = **422 reject**, before any charge.
-- [x] **The video must have an audio track.** There is nothing to transcribe without one, so it is
-  a `422` before any charge — not a failed task. A video *with* audio but *without speech* is
-  different: that task is accepted, charged, then comes back `failed` with `TRANSCRIPTION_EMPTY`
-  and is refunded.
+- [x] **Cap 300 s and 300 MB**, the same as dubbing. A video over either limit is rejected rather
+  than transcribed; the contract states the limits, not the status code they come back as.
+- [x] **The video must have an audio track.** There is nothing to transcribe without one, so such a
+  video is rejected rather than run — again, the contract states the requirement and not a code,
+  and on both MCP servers the check happens client-side before any request is made. A video *with*
+  audio but *without speech* is different: that task is accepted, charged, then comes back `failed`
+  with `TRANSCRIPTION_EMPTY` and is refunded.
 - [x] `video_url` **must be https** — the backend fetches the source itself and rejects plain http,
   the same rule as dubbing. Exactly one of `video` / `video_url`.
 - [x] `languages` is **optional**, a JSON-array **string** form field (the same wire shape as
