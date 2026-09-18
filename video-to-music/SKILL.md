@@ -179,7 +179,7 @@ generate once, iterate on the prompt, not on rerolls.
 - **User wants the score's instruments as separate files** (to remix, re-balance, or drop one)? `stems=true` on `video_to_music` — it's free, but async-only and not on every surface yet, and it splits the generated music, never the source audio; see [Stems](#stems).
 - **Duration:** always matched to the source video automatically — don't ask for it.
 - **Need SFX too?** To generate music **and** sound effects for the same video in one balanced, single-charge call, use [video-to-sound](../video-to-sound) rather than calling this and [video-to-sfx](../video-to-sfx) separately.
-- **Don't know what it should sound like?** Run [video-analysis](../video-analysis) first: one call returns a section plan plus ready-to-use generation prompts read off the footage, which beats guessing a prompt and rerolling. It is a paid call that generates nothing, so use it when the brief is genuinely unclear — not when the user already told you what they want.
+- **Don't know what it should sound like?** Run [video-analysis](../video-analysis) first: one call returns a section plan plus ready-to-use generation prompts read off the footage (and a sound-design brief too, unless you pass `mode="music"`), which beats guessing a prompt and rerolling. It is a paid call that generates nothing, so use it when the brief is genuinely unclear — not when the user already told you what they want.
 - **Content restriction:** prompts cannot reference specific artists, bands, or copyrighted lyrics.
 
 ## Recovering a Timed-Out Call
