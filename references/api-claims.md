@@ -15,7 +15,7 @@ Every numeric limit and behavior claim used by the skills in this repo, verified
 
 ## video_to_sfx
 
-- [x] **Cap 180 s** both surfaces; over-cap = 422 reject. (Internal 360 s probe backstop exists; publicly say 180 s.)
+- [x] **Cap 480 s (8 min)** both surfaces, raised from 180 s on 2026-09-04 together with video-to-video-sfx, video-to-sound and video-to-video-sound; over-cap = 422 reject, never truncated. The endpoint owns the check (the shared 360 s probe ceiling no longer applies to it).
 - [x] `prompt` ≤ 2000 chars — enforced, **error** not truncate.
 - [x] Segment rules — **ALL backend-enforced**, rejected before any charge: ≤30 entries · first start = 0 (±1e-3) · contiguous end == next start (±0.01 s) · end > start · segment prompt non-empty ≤200 chars. Plus undocumented **40,000-char raw-JSON cap**. Identical on MCP (segments = JSON-encoded array string, same validation).
 - [x] Last `end` need NOT equal duration — only `≤ duration + 0.05 s` enforced. Uncovered tail = **no generated SFX** (upstream behavior, don't promise more).
@@ -80,7 +80,7 @@ Added 2026-09-13, verified against the shipped backend and a paid production run
 
 ## Empirical test (2026-07-29)
 
-- 240 s synthetic video → `POST https://api.sonilo.com/v1/video-to-sfx` → **422** `{"code":"unprocessable_entity","message":"Video duration 240.0s exceeds the 180s video-to-sfx maximum"}`. Instant, no task created, no charge. Confirms the API **rejects** (does not truncate) over-cap SFX input. Consumer-app behavior for over-cap uploads remains unverified.
+- (Recorded under the old 180 s cap, before 2026-09-04:) 240 s synthetic video → `POST https://api.sonilo.com/v1/video-to-sfx` → **422** `{"code":"unprocessable_entity","message":"Video duration 240.0s exceeds the 180s video-to-sfx maximum"}`. Instant, no task created, no charge. Today a 240 s video is accepted; the same rejection now fires above 480 s and names the 480s video-to-sfx maximum. Confirms the API **rejects** (does not truncate) over-cap SFX input. Consumer-app behavior for over-cap uploads remains unverified.
 
 ## Live spec observations (sonilo.com/openapi.json, 2026-07-29)
 

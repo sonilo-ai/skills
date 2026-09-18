@@ -108,7 +108,7 @@ Every call is task-based: the endpoint returns `{"task_id": ...}` (HTTP 202), an
 | Parameter | Type | Default | Notes |
 |-----------|------|---------|-------|
 | `prompt` | string | — | Optional overall description (max 2000 chars) — omit it to let Sonilo interpret the video on its own. |
-| `video_path` | string | — | `.mp4/.mov/.webm/.m4v/.gif` (gif must be animated) — a narrower set than the music tools. Max **180s (3 min)**, subject to the account's upload-size cap. |
+| `video_path` | string | — | `.mp4/.mov/.webm/.m4v/.gif` (gif must be animated) — a narrower set than the music tools. Max **480s (8 min)**, subject to the account's upload-size cap. |
 | `video_url` | string | — | HTTPS/HTTP URL to a video. Exactly one of `video_path`/`video_url`. |
 | `segments` | list[dict] | — | Script SFX to specific time ranges: `[{"start": float, "end": float, "prompt": str}, ...]`. See rules below. Max 30 segments. |
 | `audio_format` | string | `aac` (`.m4a`) | `wav`, `mp3`, `aac`, or `flac`. `video_to_sfx` only (video-to-video always outputs `.mp4`). |
@@ -132,7 +132,7 @@ time-segmented action map: what is on screen, what it's made of, what it does,
 second by second. The footage is the source of truth.
 
 Before a paid call: probe the exact duration and existing audio, respect the
-**180 s** cap (over = 422 reject, never truncated), and get sign-off — failed
+**480 s** cap (over = 422 reject, never truncated), and get sign-off — failed
 runs auto-refund, but your own retry is a new charge.
 
 - Full pre-flight (inspect the video, caps, credits, verification): [references/preflight.md](../references/preflight.md)
