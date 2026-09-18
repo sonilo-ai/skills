@@ -14,7 +14,7 @@
     "local_from": "sonilo-mcp 0.23.0 (PyPI)",
     "hosted_from": "sonilo-api-dashboard backend/app/mcp_server.py",
     "date": "2026-09-18",
-    "_note": "`subtitles` and `export_srt` on dubbing are on both surfaces as of sonilo-mcp 0.23.0. They differ in what a value may be: the hosted server has no filesystem and takes https URLs only, while the local one also takes a .srt/.vtt path under SONILO_MCP_BASE_PATH. `mode` on analyze_video (both/music/sfx, default both) is live on the hosted server and recorded on `local.analyze_video` and the CLI's `--mode` ahead of the sonilo-mcp / sonilo-cli releases that carry it; --refresh agrees once the next sonilo-mcp is on PyPI."
+    "_note": "`subtitles` and `export_srt` on dubbing are on both surfaces as of sonilo-mcp 0.23.0. They differ in what a value may be: the hosted server has no filesystem and takes https URLs only, while the local one also takes a .srt/.vtt path under SONILO_MCP_BASE_PATH. `mode` on analyze_video (both/music/sfx, default both) is live on the hosted server and recorded on `local.analyze_video` and the CLI's `--mode` ahead of the sonilo-mcp / sonilo-cli releases that carry it; --refresh agrees once the next sonilo-mcp is on PyPI. `mode` is live on the hosted server and documented (must_document), but held OUT of local.analyze_video until sonilo-mcp 0.25.0 is on PyPI — --refresh regenerates local from the installed package, so listing it early would fail CI. Add it to local once 0.25.0 ships."
   },
   "hosted": {
     "get_account_services": [],
@@ -202,8 +202,7 @@
       "video_path",
       "video_url",
       "prompt",
-      "variants_num",
-      "mode"
+      "variants_num"
     ],
     "audio_ducking": [
       "voice_path",
