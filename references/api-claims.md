@@ -79,7 +79,8 @@ differences from the client sources. Not from an engineering conversation.
   than transcribed; the contract states the limits, not the status code they come back as.
 - [x] **The video must have an audio track.** There is nothing to transcribe without one, so such a
   video is rejected rather than run — again, the contract states the requirement and not a code,
-  and on both MCP servers the check happens client-side before any request is made. A video *with*
+  and the hosted MCP server checks it client-side before any request is made (the local server
+  does not probe for audio and leaves it to the API). A video *with*
   audio but *without speech* is different: that task is accepted, charged, then comes back `failed`
   with `TRANSCRIPTION_EMPTY` and is refunded.
 - [x] `video_url` **must be https** — the backend fetches the source itself and rejects plain http,

@@ -229,7 +229,7 @@ other, never both.
 - **`source_language`** is the language the transcript is in, whatever hint was
   sent. It is the key the source-language file appears under.
 - **`cue_count`** is the number of subtitle cues in the source script. Every
-  language has the same count, since translation is cue by cue.
+  language has the same count.
 - **`warnings`** maps a language to **non-blocking** issues in its script, and
   is empty when there are none. Each issue carries `cue` (1-based), `code`,
   `severity`, plus whatever measurement that code brought with it (e.g.
@@ -332,9 +332,10 @@ both or neither of `video_path`/`video_url`, a non-https `video_url`), `429`
 rate limit. An unsupported language code is a `422` before anything is charged.
 
 A video over the 300s cap, over 300 MB, or with no audio track is rejected
-rather than transcribed. On both MCP servers the duration and audio-track rules
-are checked before the request is even made, so they reach you as a tool error
-rather than as an HTTP status.
+rather than transcribed. Both MCP servers check the duration before the request
+is made, and the hosted server also checks for an audio track, so those reach
+you as a tool error rather than as an HTTP status; the local server leaves the
+audio-track check to the API.
 
 A failed task carries an `error.code` of `SOURCE_DOWNLOAD_FAILED`,
 `SOURCE_PROCESSING_FAILED`, `TRANSCRIPTION_EMPTY`, `TRANSCRIPTION_FAILED`,
