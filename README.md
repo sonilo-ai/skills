@@ -29,7 +29,7 @@ npx skills add sonilo-ai/skills --skill video-to-music
 /plugin install skills@sonilo-skills
 ```
 
-This installs the same twelve skills (`video-to-music`, `text-to-music`, `video-to-sfx`, `text-to-sfx`, `video-to-sound`, `video-analysis`, `audio-ducking`, `auto-dubbing`, `task-recovery`, `account`, `audio-playback`, `setup-api-key`) as a single Claude Code plugin, discovered directly from their existing top-level directories — no separate copy to keep in sync. It's a skills-only plugin (no MCP server, no bundled tools); see [Configuration](#configuration) below for how to connect the Sonilo MCP server itself.
+This installs the same thirteen skills (`video-to-music`, `text-to-music`, `video-to-sfx`, `text-to-sfx`, `video-to-sound`, `video-analysis`, `audio-ducking`, `auto-dubbing`, `proofread`, `task-recovery`, `account`, `audio-playback`, `setup-api-key`) as a single Claude Code plugin, discovered directly from their existing top-level directories — no separate copy to keep in sync. It's a skills-only plugin (no MCP server, no bundled tools); see [Configuration](#configuration) below for how to connect the Sonilo MCP server itself.
 
 ## Available Skills
 
@@ -43,6 +43,7 @@ This installs the same twelve skills (`video-to-music`, `text-to-music`, `video-
 | [video-analysis](./video-analysis) | Analyze a video and get a creative brief — a music section plan plus ready-to-use generation prompts, and a sound-design brief, or just one via `mode` — instead of a track (`analyze_video`) |
 | [audio-ducking](./audio-ducking) | Duck a music bed under a voice track (or a video's voice track) automatically (`audio_ducking`) |
 | [auto-dubbing](./auto-dubbing) | Dub a video into other languages with re-voiced speech (`dubbing`) |
+| [proofread](./proofread) | Transcribe a video and translate the transcript into editable `.srt` files — the review step before dubbing (`proofread`) |
 | [task-recovery](./task-recovery) | Recover the result of a timed-out generation using its task id (`get_sfx_task`, or `get_generation_task` on the hosted server) |
 | [account](./account) | Check available services, limits, free-trial allowance, and usage history (`get_account_services`, `get_usage`) |
 | [audio-playback](./audio-playback) | Play a local audio file through the system's speakers (`play_audio`) |

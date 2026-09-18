@@ -68,6 +68,67 @@ Added 2026-09-13, verified against the shipped backend and a paid production run
 - [x] **Published everywhere as of 2026-09-14**: REST, the hosted MCP server, sonilo-mcp 0.23.0, PyPI `sonilo` 0.17.0 / `sonilo-cli` 0.16.0, npm `sonilo` 0.18.0 / `sonilo-cli` 0.17.0. Both CLIs take `--subtitle <lang>=<path-or-url>` (repeatable) and `--export-srt`. The two MCP servers differ in what a subtitle value may be: the hosted one has no filesystem and takes https URLs only, the local one also takes a `.srt`/`.vtt` path.
 - [x] `lipsync` (bool, **default true**) shipped just ahead of this, in sonilo-mcp 0.22.0 and on the hosted server. `false` skips the mouth re-render: the deliverable keeps the source's own frames, resolution and frame rate, and only the audio is replaced. Absent must mean true — that is what every dubbing task did before the parameter existed.
 
+## proofread
+
+Added 2026-09-18 with `POST /v1/proofread`. Verified against the live API and one paid
+multi-language run on 2026-09-16; the request/response contract, the error-code list and the
+billing numbers are from the shipped docs contract extracted 2026-09-18, and the per-surface
+differences from the client sources. Not from an engineering conversation.
+
+- [x] **Cap 300 s and 300 MB**, the same as dubbing. A video over either limit is rejected rather
+  than transcribed; the contract states the limits, not the status code they come back as.
+- [x] **The video must have an audio track.** There is nothing to transcribe without one, so such a
+  video is rejected rather than run — again, the contract states the requirement and not a code,
+  and the hosted MCP server checks it client-side before any request is made (the local server
+  does not probe for audio and leaves it to the API). A video *with*
+  audio but *without speech* is different: that task is accepted, charged, then comes back `failed`
+  with `TRANSCRIPTION_EMPTY` and is refunded.
+- [x] `video_url` **must be https** — the backend fetches the source itself and rejects plain http,
+  the same rule as dubbing. Exactly one of `video` / `video_url`.
+- [x] `languages` is **optional**, a JSON-array **string** form field (the same wire shape as
+  dubbing's), e.g. `["ja","zh_cn"]`. Omit it or send `[]` for the source-language transcript alone.
+  It takes **the same codes as dubbing**, which is the point — a proofread script goes straight
+  into a dub. An unsupported code is a `422` naming it, and it is **not** validated client-side:
+  the server owns the list, so a code added later works without a client upgrade.
+- [x] `source_language` is an **optional hint** for transcription (one of the same codes), useful
+  on short, noisy or mixed-language audio. It does not add a language and does not change the
+  price. Omitted = detected. Either way the finished task reports the language the transcript is
+  actually in.
+- [x] **Billing: video seconds × max(1, number of target languages) at $0.001/sec, 10-second
+  floor**, account discount applies. A transcript-only request (no `languages`) counts as **one**.
+  Charged up front at submission; failed tasks are refunded.
+- [x] **Free trial: 2 calls**, self-serve accounts only — unlike `dubbing`, which has zero.
+- [x] Async: `202` `{"task_id", "status": "processing"}`, result on `GET /v1/tasks/{task_id}`.
+  Typical wall time 20–45 s for a 3.4-minute clip with 2–6 languages, so the clients keep their
+  ordinary wait default rather than dubbing's two-hour floor.
+- [x] Result envelope: `source_language`, `subtitles`, `cue_count`, `warnings`, `duration_seconds`.
+- [x] ⚠️ **`subtitles` ALWAYS includes the detected source language**, under its detected code, on
+  top of one entry per requested target. A request with no `languages` still returns one file, and
+  a one-language request returns two. Values are **presigned `.srt` URLs that expire** — the same
+  map shape as dubbing's `outputs`, which is why every client models it as a map rather than a list.
+- [x] `cue_count` is the cues in the **source** script; every language has the same count, since
+  translation is cue by cue.
+- [x] ⚠️ **`warnings` is non-blocking.** It maps a language to a list of preflight issues
+  `{"cue": <1-based>, "code": "high_text_speed", "severity": "warning", <measurement>}`, and is
+  `{}` when there are none. Nothing in it fails the task or withholds a file — surface it as a note.
+- [x] Failure carries `error.code` one of `SOURCE_DOWNLOAD_FAILED`, `SOURCE_PROCESSING_FAILED`,
+  `TRANSCRIPTION_EMPTY`, `TRANSCRIPTION_FAILED`, `TRANSLATION_FAILED`, `PREFLIGHT_BLOCKED`,
+  `PREFLIGHT_UNAVAILABLE`, `TRANSFER_FAILED`. A `503` is the server-side kill switch, not an auth
+  or balance problem.
+- [x] **The handoff is the contract**: the returned `.srt` files, once corrected, go to
+  `POST /v1/dubbing` as `subtitles[<language>]` with `languages` matching. Dubbing's key set must
+  equal `languages` **exactly**, so the source-language file proofread always returns has to be
+  dropped before the dub.
+- [x] ⚠️ **Input differs by MCP server**, the same split as `video_path` elsewhere: the hosted
+  server exposes `video_url`, `languages` and `source_language` only; local `sonilo-mcp` also takes
+  `video_path` and `output_directory` and saves one `.srt` per language as
+  `proofread-<first 8 chars of the task id>.<language>.srt`. `get_generation_task` (hosted) /
+  `get_sfx_task` (local) recover a timed-out call.
+- [x] ⚠️ **Not published yet as of 2026-09-18.** The REST endpoint and the hosted MCP tool are
+  live; sonilo-mcp 0.26.0, PyPI `sonilo-cli` 0.19.0 and their npm twins are merged but unreleased,
+  so `tests/tool_surface.json`'s `proofread` entries were recorded by hand from those sources and
+  `python tests/validate.py --refresh` cannot confirm them until the packages land.
+
 ## Billing / general
 
 - [x] Charged up front at submission; **failed generations auto-refunded**. Caller retries = new charge. **No preview/low-cost mode.** Music + SFX = separate task types, separate per-second rates, separate prepay minute pools. `variants_num` scales v2m cost linearly; N>1 never covered by free trial.
