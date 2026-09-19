@@ -97,7 +97,7 @@ differences from the client sources. Not from an engineering conversation.
 - [x] **Billing: video seconds × max(1, number of target languages) at $0.001/sec, 10-second
   floor**, account discount applies. A transcript-only request (no `languages`) counts as **one**.
   Charged up front at submission; failed tasks are refunded.
-- [x] **Free trial: 2 calls**, self-serve accounts only — unlike `dubbing`, which has zero.
+- [x] **Free trial: 2 calls**, self-serve accounts only — `dubbing`'s is 1, as a 15-second preview.
 - [x] Async: `202` `{"task_id", "status": "processing"}`, result on `GET /v1/tasks/{task_id}`.
   Typical wall time 20–45 s for a 3.4-minute clip with 2–6 languages, so the clients keep their
   ordinary wait default rather than dubbing's two-hour floor.

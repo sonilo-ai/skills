@@ -1,6 +1,6 @@
 ---
 name: auto-dubbing
-description: Dub a video into one or more other languages using Sonilo, translating and re-voicing the speech into a new video per language. Optionally supply your own target-language script per language, so the dub speaks those lines verbatim instead of the pipeline's own translation, and get a re-timed SRT back per language. Use when a user needs a video localized into another language, not just subtitled. Billed per language with zero free trial — confirm language count with the user before calling.
+description: Dub a video into one or more other languages using Sonilo, translating and re-voicing the speech into a new video per language. Optionally supply your own target-language script per language, so the dub speaks those lines verbatim instead of the pipeline's own translation, and get a re-timed SRT back per language. Use when a user needs a video localized into another language, not just subtitled. Billed per language; a self-serve account's first single-language call is a free 15-second preview — confirm language count with the user before calling.
 license: MIT
 compatibility: "Requires Sonilo through either transport — the MCP server connected, or the `sonilo` CLI installed and signed in — plus credentials: a `sonilo login` sign-in, the hosted OAuth plugin, or SONILO_API_KEY. See the setup-api-key skill."
 allowed-tools: Bash, Read, Write, mcp__sonilo__*
@@ -12,7 +12,7 @@ Dub a video into one or more other languages: the speech is translated and re-vo
 
 > **Setup:** See the [setup-api-key](../setup-api-key) skill.
 
-> ⚠️ **Cost — read before calling:** this is billed **per language**, with **zero free-trial runs** — even a trial account is charged from the very first call, unlike every other Sonilo tool. Requesting four languages costs four times as much as one. Confirm the exact language list with the user before calling; do not guess a long list "to be helpful."
+> ⚠️ **Cost — read before calling:** this is billed **per language**. The only free run is a **15-second preview**: a self-serve account's first call with ONE language and no `subtitles` translates just the first 15 seconds of the video, at no charge, and the result carries `trial_preview` with what the whole video would cost. Every call after that — and any call with several languages or scripts — is charged. Requesting four languages costs four times as much as one. Confirm the exact language list with the user before calling; do not guess a long list "to be helpful."
 
 > ⏱ **This call is slow.** It polls for **at least two hours** internally regardless of any shorter `TIME_OUT_SECONDS` — that's the backend's own ceiling for the dubbing pipeline. A call that sits for an hour or more is normal, not a hang. Do not cancel it: the job keeps running and charging either way, and cancelling just loses the easy path to the result (use `get_sfx_task`, or `get_generation_task` on the hosted server, to recover it instead).
 
@@ -206,7 +206,7 @@ trip, and the first two are easy to get wrong:
 - **Ask for scripts when the user has them.** If they mention approved copy, an existing localization, or a translation they want said exactly, that is `subtitles` — the pipeline's own translation would overwrite it. Do not invent one: a script you wrote yourself is a translation the user never approved, spoken in their video.
 - **This is not the music or SFX skills** ([text-to-music](../text-to-music), [video-to-music](../video-to-music), [text-to-sfx](../text-to-sfx), [video-to-sfx](../video-to-sfx)). It doesn't touch music/SFX at all — it translates and re-voices existing speech.
 - **Set expectations on time.** Tell the user up front this can take up to ~2 hours and that walking away is fine — the result is recoverable afterward.
-- Because there is no free trial here at all, if the account is self-serve and hasn't added a payment method, warn the user before calling rather than letting it fail with `trial_exhausted` (which doesn't even apply — dubbing bills immediately regardless of trial status). Check `get_account_services` (see [account](../account)) if unsure about billing status.
+- **The free run is a preview, not the whole video.** A self-serve account gets one free single-language call, and it translates only the first 15 seconds. When the result carries `trial_preview`, tell the user exactly that — the clip is the first 15 seconds of their video, and `full_video_cost_usd` is what the whole thing costs — rather than presenting the clip as the finished translation. Once that run is spent, an account without a payment method fails with `trial_exhausted`; check `get_account_services` (see [account](../account)) first if unsure, and warn the user before calling.
 
 ## Recovering a Timed-Out Call
 
@@ -223,6 +223,29 @@ export was blocked has its video and no `.srt`; that is reported as a note, not
 an error. On the CLI the SRTs follow `--output` the same way the videos do
 (`--output dubbed.mp4` writes `dubbed.es.mp4` and `dubbed.es.srt`), which is why
 `--output` may not itself end in `.srt`.
+
+### Free preview
+
+When the run was the account's free 15-second preview, the task carries
+`trial_preview` in every state:
+
+```json
+"trial_preview": {
+  "preview_seconds": 15,
+  "source_duration_seconds": 60.0,
+  "trimmed": true,
+  "languages": 1,
+  "full_video_cost_usd": 3.49,
+  "message": "Free preview: the first 15 seconds of your 60-second video, in 1 language. Translating the full video costs $3.49 — add funds at https://platform.sonilo.com/dashboard/billing"
+}
+```
+
+`duration_seconds` is then 15, not the source's length, and the delivered
+`.mp4` is that first 15 seconds. The MCP tool and both CLIs print the
+`message` with their other status lines; the SDKs expose it as
+`DubbingResult.trial_preview`. Relay it to the user, and offer the full run
+(add funds, call again — that run is billed) rather than treating the clip
+as the whole video.
 
 ## Error Handling
 

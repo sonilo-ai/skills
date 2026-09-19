@@ -124,7 +124,7 @@ Every generation tool has a 1:1 SDK resource and CLI command (`audio_ducking`, t
 
 ## Billing
 
-Tools marked with a cost warning make an API call that may incur charges. Self-serve accounts start with a few free runs per service (no card required) — call `get_account_services` to check `trial[service].remaining` before a paid call. `dubbing` has **zero** free runs and bills per language from the first call. See the [account](./account) skill.
+Tools marked with a cost warning make an API call that may incur charges. Self-serve accounts start with a few free runs per service (no card required) — call `get_account_services` to check `trial[service].remaining` before a paid call. `dubbing`'s one free run is a **15-second preview** (first single-language call, no scripts); everything after that bills per language. See the [account](./account) skill.
 
 ## Evaluations
 
