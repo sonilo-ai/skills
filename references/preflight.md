@@ -38,7 +38,7 @@ and [SFX prompting](./sfx-prompting.md).
 | Endpoint | Max duration | Output |
 |---|---|---|
 | `video_to_music` | **360 s** | audio file (m4a default, wav optional) |
-| `video_to_sfx` | **180 s** | audio file (aac default; wav/mp3/flac optional) |
+| `video_to_sfx` | **480 s** | audio file (aac default; wav/mp3/flac optional) |
 
 Over the cap the request is **rejected (422)** — never truncated. For a longer
 master, decide explicitly with the user: trim to a shorter cut, process a
@@ -103,7 +103,7 @@ ffmpeg -i video.mp4 -i track.m4a -map 0:v -map 1:a -c:v copy -shortest out.mp4
 - Never promise timing: cut-point alignment is best-effort model behavior —
   no frame-exact sync claims. And no mix directions anywhere; levels are not
   promptable.
-- Respect the caps (360 s music / 180 s SFX; over = 422 reject). Longer
+- Respect the caps (360 s music / 480 s SFX and sound / 480 s video-analysis / 300 s dubbing; over = 422 reject). Longer
   master → decide trim / excerpt / chunk with the user explicitly; never
   silently generate on a cut-down and present it as the full export.
 - Generation costs credits. Brief first, generate once; iterate on the
