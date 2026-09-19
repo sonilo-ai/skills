@@ -95,13 +95,13 @@ curl "https://api.sonilo.com/v1/account/usage?days=7" -H "Authorization: Bearer 
 ```
 
 - The `trial` key is **absent entirely** for accounts with no free-trial allowance — treat that as "bills normally," not as an error.
-- A `trial` object that's present but has **no entry for a given service** means that service has no free-trial allowance at all and bills from the first call — this is `dubbing`'s situation on every self-serve trial account.
+- A `trial` object that's present but has **no entry for a given service** means that service has no free-trial allowance at all and bills from the first call. `dubbing` shows `granted: 1`, but that run is a **15-second preview** of the first single-language call, not a full translation — see the [auto-dubbing](../auto-dubbing) skill.
 - When `trial[service].remaining` is `0`, calling that service fails with a `402 trial_exhausted` error that no retry fixes.
 
 ## Workflow Tips
 
 - **Check before you generate.** Before calling any paid tool (`text_to_music`, `video_to_music`, `text_to_sfx`, `video_to_sfx`, `video_to_video_music`, `video_to_video_sfx`, `video_to_sound`, `video_to_video_sound`, `dubbing`, `proofread`, `audio_ducking`), call `get_account_services()` if you're unsure whether the account has free runs left. If `trial[service].remaining` is `0`, tell the user their free trial for that service is spent and that continuing needs a payment method — don't just attempt the call and surface a raw 402.
-- **`dubbing` is billed from the first call, always** — even a trial account with `trial` present will show no entry (or a zero allowance) for it. See the [auto-dubbing](../auto-dubbing) skill's cost warning.
+- **`dubbing`'s free run is a 15-second preview**, not a full video: only the first single-language call without scripts is free, and it translates just the first 15 seconds. Several languages, scripts, and every later call are billed. See the [auto-dubbing](../auto-dubbing) skill's cost warning.
 - **`proofread` does have a free-trial allowance — 2 runs** — and, like `dubbing`, bills per language after that. See the [proofread](../proofread) skill.
 - **Usage reconciliation:** if a generation timed out or failed, use `get_usage` to confirm whether the backend actually completed (and charged) it, rather than assuming nothing happened.
 - Rate-limited (`429`)? `get_account_services()` reports `rpm_limit` and `concurrency_limit` so you can tell the user what ceiling they hit.
