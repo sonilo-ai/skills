@@ -156,7 +156,7 @@ auto-refund, but your own retry is a new charge.
 ## Workflow Tips
 
 - **If the user has a finished video, you are in the wrong skill.** [video-to-music](../video-to-music) syncs to the actual cut instead of producing a generic track of matching length.
-- **Duration is required here.** Don't guess it — ask if the user hasn't said.
+- **Duration is optional, and a guess is worse than leaving it out.** Pass the length the user named. If they named none, omit `duration` and Sonilo reads one out of the prompt — but a vague prompt resolves long ("lofi" alone is about 180 s) and is billed at that length, so ask first when cost matters.
 - **Several takes in one go:** `variants_num=3` returns three distinct directions for one request instead of three re-rolls. It costs 3×, and it is never free-trial covered — say the price before calling.
 - **User wants the track's instruments as separate files** (to remix, re-balance, or drop one)? `stems=true` — it's free, but async-only and not on every surface yet; see [Stems](#stems).
 - **Content restriction:** prompts cannot reference specific artists, bands, or copyrighted lyrics.
