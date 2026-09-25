@@ -1,7 +1,7 @@
 {
   "name": "skills",
   "displayName": "Sonilo Skills",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "description": "Agent Skills for Sonilo's licensed music, sound-effects, dubbing, and audio-ducking API \u2014 with structured-brief prompting guidance (pre-flight, music briefs, SFX action maps) folded into each skill.",
   "author": {
     "name": "Sonilo AI",

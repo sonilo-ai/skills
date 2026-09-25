@@ -506,7 +506,7 @@
     "sks_": "keys are `sk-` prefixed",
     "narrower tool coverage": "the hosted server carries the full tool set",
     "SONILO_API_KEY is required": "a key is optional since sonilo-mcp 0.16.0 — `sonilo login` also works",
-    "SFX/sound/dubbing": "dubbing's cap is 300 s (5 min); SFX and sound are 480 s (8 min)",
+    "SFX/sound/dubbing": "dubbing's cap is 300 s (5 min); SFX and sound are 480 s (8 min) — never fold the three under one number",
     "so you must set it": "duration is optional on text_to_music and text_to_sfx — the API resolves an omitted one (from the prompt, or its own default)",
     "Duration is required here": "duration is optional on text_to_music and text_to_sfx — omit it when the user names no length, never invent one",
     "180s (3 min)": "the video_to_sfx / video_to_sound cap is 480 s (8 min) since 2026-09-04",
