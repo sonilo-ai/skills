@@ -15,7 +15,7 @@ Every numeric limit and behavior claim used by the skills in this repo, verified
 
 ## video_to_sfx
 
-- [x] **Cap 180 s** both surfaces; over-cap = 422 reject. (Internal 360 s probe backstop exists; publicly say 180 s.)
+- [x] **Cap 480 s** (8 min) both surfaces, raised from 180 s on 2026-09-04 (dashboard #328, `SFX_MAX_VIDEO_DURATION_SECONDS`); over-cap = 422 reject. `video_to_sound` shares the same 480 s cap. The 240 s probe recorded below predates the raise.
 - [x] `prompt` ≤ 2000 chars — enforced, **error** not truncate.
 - [x] Segment rules — **ALL backend-enforced**, rejected before any charge: ≤30 entries · first start = 0 (±1e-3) · contiguous end == next start (±0.01 s) · end > start · segment prompt non-empty ≤200 chars. Plus undocumented **40,000-char raw-JSON cap**. Identical on MCP (segments = JSON-encoded array string, same validation).
 - [x] Last `end` need NOT equal duration — only `≤ duration + 0.05 s` enforced. Uncovered tail = **no generated SFX** (upstream behavior, don't promise more).

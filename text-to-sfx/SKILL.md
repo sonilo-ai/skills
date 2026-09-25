@@ -94,7 +94,7 @@ The endpoint returns `{"task_id": ...}` (HTTP 202) and the result is fetched fro
 | Parameter | Type | Default | Notes |
 |-----------|------|---------|-------|
 | `prompt` | string | — | Required. 1–2000 chars. |
-| `duration` | number | Sonilo's own default | Optional, 0.5–180 seconds. Omit it when the user names no length — do not invent one. Fractional values are allowed: the shortest effects, a latch or a click, run well under a second. |
+| `duration` | number | Sonilo's default, 8 s | Optional, 0.5–180 seconds. Omit it when the user names no length — do not invent one. Fractional values are allowed: the shortest effects, a latch or a click, run well under a second. |
 | `audio_format` | string | `aac` (`.m4a`) | `wav`, `mp3`, `aac`, or `flac`. |
 | `output_directory` | string | `SONILO_MCP_BASE_PATH` | Absolute, or relative to the base path. |
 
@@ -112,7 +112,7 @@ auto-refund, but your own retry is a new charge.
 ## Workflow Tips
 
 - **This is for a single clip with no video context** — a UI chime, a whoosh, a foley element you'll layer yourself. If the user has footage, use [video-to-sfx](../video-to-sfx) instead.
-- **Duration is required here.** Don't guess it — ask if the user hasn't said.
+- **Duration is optional; never invent one.** Pass the length the user named. If they named none, omit `duration` and Sonilo uses its default (8 s) — ask only when the length actually matters to the user.
 - **Don't confuse this with music.** For a background score or soundtrack, use [text-to-music](../text-to-music) or [video-to-music](../video-to-music).
 
 ## Recovering a Timed-Out Call

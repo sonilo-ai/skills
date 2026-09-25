@@ -118,7 +118,7 @@ Both endpoints are task-based (202 + poll), same as the sound-effects tools — 
 
 | Parameter | Type | Default | Notes |
 |-----------|------|---------|-------|
-| `video_path` | string | — | `.mp4/.mov/.webm/.m4v/.gif` (gif must be animated). Max **180s (3 min)**, subject to the account's upload-size cap. |
+| `video_path` | string | — | `.mp4/.mov/.webm/.m4v/.gif` (gif must be animated). Max **480s (8 min)**, subject to the account's upload-size cap. |
 | `video_url` | string | — | HTTPS/HTTP URL. Exactly one of `video_path`/`video_url`. |
 | `music_prompt` | string | — | Style hint for the music bed (max 2000 chars). Optional — omit to let Sonilo decide. |
 | `sfx_prompt` | string | — | Description of the SFX layered over the music (max 2000 chars). Optional. |
