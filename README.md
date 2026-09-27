@@ -8,7 +8,7 @@ Sonilo's flagship capability is **video-to-music**: hand it a finished video and
 
 ## Installation
 
-These skills follow the community [Agent Skills specification](https://agentskills.io/specification), so any compatible tool can install them via `npx skills add`. This repo is also set up as a **Claude Code plugin marketplace**, so Claude Code users can install the same skills with `/plugin` instead — pick whichever fits your workflow.
+These skills follow the community [Agent Skills specification](https://agentskills.io/specification), so any compatible tool can install them via `npx skills add`. This repo is also set up as a **Claude Code plugin marketplace**, so Claude Code users can install the same skills with `/plugin` instead, and a **Muse Code plugin** that also connects the hosted Sonilo MCP server — pick whichever fits your workflow.
 
 ### Option 1: `npx skills` (any compatible assistant)
 
@@ -30,6 +30,30 @@ npx skills add sonilo-ai/skills --skill video-to-music
 ```
 
 This installs the same thirteen skills (`video-to-music`, `text-to-music`, `video-to-sfx`, `text-to-sfx`, `video-to-sound`, `video-analysis`, `audio-ducking`, `auto-dubbing`, `proofread`, `task-recovery`, `account`, `audio-playback`, `setup-api-key`) as a single Claude Code plugin, discovered directly from their existing top-level directories — no separate copy to keep in sync. It's a skills-only plugin (no MCP server, no bundled tools); see [Configuration](#configuration) below for how to connect the Sonilo MCP server itself.
+
+### Option 3: Muse Code plugin
+
+```bash
+MUSE_EXPERIMENTAL_PLUGINS=1 muse plugins marketplace add sonilo-skills https://github.com/sonilo-ai/skills
+MUSE_EXPERIMENTAL_PLUGINS=1 muse plugins install skills@sonilo-skills
+MUSE_EXPERIMENTAL_PLUGINS=1 muse plugins approve skills
+```
+
+Or from a clone: `muse plugins install ./skills --scope user`, then the same `approve`. `approve` is what activates the MCP server — Muse leaves a third-party plugin's server off until it is reviewed; the skills are active as soon as the plugin is installed. `muse skills list --source plugin` shows the thirteen skills.
+
+Unlike the Claude Code plugin above, this one also brings the tools: it connects Muse to the hosted Sonilo MCP server (`https://api.sonilo.com/mcp`), so there is no key to paste. The first Sonilo tool call asks you to sign in with a **Sonilo Platform** account ([platform.sonilo.com](https://platform.sonilo.com/sign-up), separate from a consumer sonilo.com account). Plugin management is behind `MUSE_EXPERIMENTAL_PLUGINS` as of Muse Code 1.4.0; what it installs runs without the flag.
+
+If you would rather sign in ahead of time, add the same server to `~/.config/muse/settings.json` and run `muse mcp login sonilo` (1.4.0 only logs in to servers listed there):
+
+```json
+{
+  "mcp_servers": {
+    "sonilo": { "transport": "streamable_http", "url": "https://api.sonilo.com/mcp" }
+  }
+}
+```
+
+**Muse app** (muse.ai, not the CLI): there is no plugin install. Ask Muse to *"build a custom integration to Sonilo — its MCP server URL is https://api.sonilo.com/mcp, streamable HTTP, OAuth sign-in"*, and sign in with your Sonilo Platform account when it asks.
 
 ## Available Skills
 
@@ -96,7 +120,7 @@ Each skill's Quick Start shows every way to call that capability — pick whiche
 
   `SONILO_API_KEY` takes precedence over a sign-in wherever both exist. Get a key from the [Sonilo dashboard](https://platform.sonilo.com/dashboard/api-keys), or use the `setup-api-key` skill for guided setup. See the [sonilo-mcp README](https://github.com/sonilo-ai/sonilo-mcp) for Claude Desktop / Codex setup and the full environment variable reference (`SONILO_API_URL`, `SONILO_MCP_BASE_PATH`, `SONILO_MCP_ALLOW_ANY_PATH`, `TIME_OUT_SECONDS`).
 
-- **MCP, remote (Claude Code only, no API key)** — the [sonilo-claude-plugin](https://github.com/sonilo-ai/sonilo-claude-plugin) connects to a hosted, OAuth-authenticated MCP server (`https://api.sonilo.com/mcp`) instead of running anything locally:
+- **MCP, remote (no API key)** — the [sonilo-claude-plugin](https://github.com/sonilo-ai/sonilo-claude-plugin) for Claude Code, and this repo's Muse Code plugin ([Option 3](#option-3-muse-code-plugin)), connect to a hosted, OAuth-authenticated MCP server (`https://api.sonilo.com/mcp`) instead of running anything locally. In Claude Code:
 
   ```
   /plugin marketplace add sonilo-ai/sonilo-claude-plugin

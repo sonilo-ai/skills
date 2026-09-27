@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "name": "skills",
+  "displayName": "Sonilo",
+  "version": "2.5.0",
+  "description": "Licensed music, sound effects, dubbing, and audio ducking from text or video, via Sonilo's hosted OAuth MCP server and the skills that route to it.",
+  "compat": {
+    "source": "native",
+    "manifestDir": ".muse-plugin"
+  },
+  "capabilities": {
+    "skills": [
+      {
+        "id": "video-to-music",
+        "path": "video-to-music/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "text-to-music",
+        "path": "text-to-music/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "video-to-sfx",
+        "path": "video-to-sfx/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "text-to-sfx",
+        "path": "text-to-sfx/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "video-to-sound",
+        "path": "video-to-sound/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "video-analysis",
+        "path": "video-analysis/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "audio-ducking",
+        "path": "audio-ducking/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "auto-dubbing",
+        "path": "auto-dubbing/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "proofread",
+        "path": "proofread/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "task-recovery",
+        "path": "task-recovery/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "account",
+        "path": "account/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "audio-playback",
+        "path": "audio-playback/SKILL.md",
+        "enabledDefault": true
+      },
+      {
+        "id": "setup-api-key",
+        "path": "setup-api-key/SKILL.md",
+        "enabledDefault": true
+      }
+    ],
+    "commands": [],
+    "hooks": [],
+    "mcpServers": [
+      {
+        "id": "sonilo",
+        "transport": "http",
+        "url": "https://api.sonilo.com/mcp"
+      }
+    ],
+    "reminders": []
+  }
+}
