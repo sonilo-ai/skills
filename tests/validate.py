@@ -20,6 +20,8 @@ What it checks:
      two directions catch invention and a surface left stale behind the prose;
      the third catches silence about a flag that changes cost or output.
   4. Banned tokens — strings that were true once (see tool_surface.json).
+  5. Plugin manifests — the Muse Code manifest lists the same skills, at the
+     same version, as the Claude Code one, and points at the hosted server.
 
 Run: python tests/validate.py            # offline, this is what CI runs
      python tests/validate.py --refresh  # regenerate the local surface from an
@@ -345,6 +347,35 @@ def check_key_prefix(docs: dict[Path, str]) -> None:
                 fail(str(rel), f"shows {m.group(0)!r}; minted keys look like `sk-…`")
 
 
+HOSTED_MCP_URL = "https://api.sonilo.com/mcp"
+
+
+def check_plugin_manifests() -> None:
+    """Two manifests list the skills; a skill added to one and not the other
+    ships to one host silently missing."""
+    claude = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())
+    muse = json.loads((ROOT / ".muse-plugin" / "plugin.json").read_text())
+    where = ".muse-plugin/plugin.json"
+    expected = {p.removeprefix("./") for p in claude["skills"]}
+    on_disk = {p.parent.name for p in ROOT.glob("*/SKILL.md")}
+    if expected != on_disk:
+        fail(".claude-plugin/plugin.json",
+             f"skills {sorted(expected ^ on_disk)} are in the manifest or on disk, not both")
+    listed = muse.get("capabilities", {}).get("skills", [])
+    ids = {s["id"] for s in listed}
+    if ids != expected:
+        fail(where, f"skills differ from .claude-plugin/plugin.json: {sorted(ids ^ expected)}")
+    for s in listed:
+        if s["path"] != f"{s['id']}/SKILL.md":
+            fail(where, f"skill {s['id']!r} points at {s['path']!r}")
+    if muse.get("version") != claude.get("version"):
+        fail(where, f"version {muse.get('version')} but .claude-plugin/plugin.json is "
+                    f"{claude.get('version')} — bump both")
+    urls = [m.get("url") for m in muse.get("capabilities", {}).get("mcpServers", [])]
+    if urls != [HOSTED_MCP_URL]:
+        fail(where, f"mcpServers should be exactly the hosted server {HOSTED_MCP_URL}, got {urls}")
+
+
 def refresh_local_surface(surface: dict) -> None:
     """Regenerate the `local` block by introspecting an installed sonilo-mcp."""
     import asyncio
@@ -383,6 +414,7 @@ def main() -> int:
     check_cli_claims(surface, docs)
     check_banned_tokens(surface, docs)
     check_key_prefix(docs)
+    check_plugin_manifests()
 
     for line in notes:
         print(f"note: {line}")

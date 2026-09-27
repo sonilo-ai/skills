@@ -1,6 +1,6 @@
 ---
 name: setup-api-key
-description: Guides users through connecting to Sonilo — signing in with `sonilo login` (OAuth, no key), the remote OAuth Claude Code plugin, or an API key for CI and headless use. Use when the user needs to configure Sonilo, wants to sign in or connect their Sonilo account, when Sonilo tools are missing, or when a call fails because no key or credential is available. First checks what already works, and only runs full setup when needed.
+description: Guides users through connecting to Sonilo — signing in with `sonilo login` (OAuth, no key), the remote OAuth plugin for Claude Code or Muse Code, or an API key for CI and headless use. Use when the user needs to configure Sonilo, wants to sign in or connect their Sonilo account, when Sonilo tools are missing, or when a call fails because no key or credential is available. First checks what already works, and only runs full setup when needed.
 license: MIT
 compatibility: Requires internet access to platform.sonilo.com and api.sonilo.com. Exact requirement depends on the chosen path — a CLI install plus a browser for `sonilo login`, `claude mcp add`/`/plugin install` for MCP, or just `pip`/`npm` for the SDKs.
 ---
@@ -12,13 +12,13 @@ Guide the user through connecting to Sonilo. There are several ways in — pick 
 | Path | Needs an API key? | Best for |
 |---|---|---|
 | **A. `sonilo login`** (CLI sign-in, credential shared with the local MCP server) | No — OAuth in the browser | Anyone on a machine with a browser. One sign-in covers the CLI *and* `uvx sonilo-mcp`, so the MCP config carries no secret. |
-| **B. Remote OAuth MCP plugin** (`sonilo-claude-plugin`) | No — OAuth sign-in | Claude Code users who want nothing running locally. Full tool coverage. |
+| **B. Remote OAuth MCP plugin** (`sonilo-claude-plugin`, or this repo's Muse Code plugin) | No — OAuth sign-in | Claude Code and Muse Code users who want nothing running locally. Full tool coverage. |
 | **C. API key** (`SONILO_API_KEY`) | Yes | CI, containers, headless boxes, and anyone who prefers holding a key. Works with every client. |
 
 Choosing:
 
 - On a machine with a browser and any MCP host → **Path A**. It is the shortest path and leaves no secret in a config file.
-- Claude Code specifically, and nothing local wanted → **Path B**.
+- Claude Code or Muse Code, and nothing local wanted → **Path B**.
 - No browser (CI, a container, a remote box), or the user says they already have a key → **Path C**.
 - Not working through an agent at all (writing code, scripting a shell) → **Path D** at the end; the MCP configuration in A–C does not apply.
 
@@ -85,7 +85,7 @@ Worth telling the user up front:
 
 Validate with `get_account_services()`, exactly as in Step 0.
 
-## Path B: Remote OAuth plugin (Claude Code only, no API key)
+## Path B: Remote OAuth plugin (Claude Code or Muse Code, no API key)
 
 ```
 claude
@@ -95,7 +95,17 @@ claude
 
 The first Sonilo tool call opens the browser to sign in to a **Sonilo Platform** account (platform.sonilo.com — separate from a consumer sonilo.com account) and approve access. Claude Code stores the resulting token per-user in the OS keychain; nothing to copy, paste, or configure. Review or disconnect anytime from `/mcp`.
 
-This connects to a single hosted endpoint (`https://api.sonilo.com/mcp`, OAuth 2.1 + PKCE) that carries the same tool set as the local server (Paths A and C): music/SFX from text or video, video-to-video music/SFX, video-to-sound, video-to-video-sound, dubbing, audio ducking, and account/usage. Paths A and C are still the better fit for MCP hosts other than Claude Code, or for users who prefer holding and managing their own key.
+This connects to a single hosted endpoint (`https://api.sonilo.com/mcp`, OAuth 2.1 + PKCE) that carries the same tool set as the local server (Paths A and C): music/SFX from text or video, video-to-video music/SFX, video-to-sound, video-to-video-sound, dubbing, audio ducking, and account/usage. Paths A and C are still the better fit for other MCP hosts, or for users who prefer holding and managing their own key.
+
+**Muse Code:** the Sonilo skills plugin carries the same hosted server, so installing it is the whole setup:
+
+```bash
+MUSE_EXPERIMENTAL_PLUGINS=1 muse plugins marketplace add sonilo-skills https://github.com/sonilo-ai/skills
+MUSE_EXPERIMENTAL_PLUGINS=1 muse plugins install skills@sonilo-skills
+MUSE_EXPERIMENTAL_PLUGINS=1 muse plugins approve skills
+```
+
+`approve` activates the MCP server (Muse keeps a third-party plugin's server off until then). The first Sonilo tool call asks for the same Sonilo Platform sign-in. If a call reports that the server needs an OAuth sign-in, add `"mcp_servers": {"sonilo": {"transport": "streamable_http", "url": "https://api.sonilo.com/mcp"}}` to `~/.config/muse/settings.json` and run `muse mcp login sonilo` — Muse Code 1.4.0 only logs in to servers listed there.
 
 ## Path C: API key (CI, containers, or by preference)
 
