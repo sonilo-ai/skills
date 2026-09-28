@@ -150,6 +150,10 @@ Every generation tool has a 1:1 SDK resource and CLI command (`audio_ducking`, t
 
 Tools marked with a cost warning make an API call that may incur charges. Self-serve accounts start with a few free runs per service (no card required) — call `get_account_services` to check `trial[service].remaining` before a paid call. `dubbing`'s one free run is a **15-second preview** (first single-language call, no scripts); everything after that bills per language. See the [account](./account) skill.
 
+## Commercial use
+
+Audio generated through the Sonilo API can be used commercially — in your own product and by your end users, including ads, client work and monetized channels. The API is billed pay-as-you-go from a prepaid balance on platform.sonilo.com, not through a sonilo.com subscription plan, so no Pro or Premium plan is needed; Enterprise API customers follow their enterprise agreement. For film, TV or broadcast use, or for releasing tracks to Spotify, Apple Music or other streaming services, contact sales first. Full answer: [Can my app's users use audio generated through the Sonilo API commercially?](https://sonilo.com/help/licensing/can-my-apps-users-use-sonilo-api-audio-commercially)
+
 ## Evaluations
 
 [`evals/`](./evals) holds five trigger evals — does the right skill fire for the
