@@ -1,0 +1,694 @@
+# Sonilo API Reference
+
+A single-page reference for Sonilo's REST API: video-to-music, text-to-music,
+video-to-SFX, text-to-SFX, combined music + SFX (video-to-sound), video
+analysis, audio ducking, dubbing and proofreading, plus task polling and
+account endpoints.
+
+Every fact here is taken from the skills in this repo and from
+[api-claims.md](./api-claims.md), which records what was verified against the
+backend. The live OpenAPI spec at `https://platform.sonilo.com/openapi.json`
+is the authority when the two disagree.
+
+Agents working through the skills in this repo should call Sonilo through the
+MCP tools or the CLI, which handle uploads, polling and retries; this page is
+for developers integrating the HTTP API directly. The Python and JS SDKs
+(`pip install sonilo`, `npm install sonilo`) wrap the same endpoints.
+
+## Table of Contents
+
+- [Basics](#basics)
+- [Async tasks](#async-tasks)
+- [Billing](#billing)
+- [Licensing](#licensing)
+- [POST /v1/video-to-music](#post-v1video-to-music)
+- [POST /v1/video-to-video-music](#post-v1video-to-video-music)
+- [POST /v1/text-to-music](#post-v1text-to-music)
+- [POST /v1/video-to-sfx](#post-v1video-to-sfx)
+- [POST /v1/video-to-video-sfx](#post-v1video-to-video-sfx)
+- [POST /v1/text-to-sfx](#post-v1text-to-sfx)
+- [POST /v1/video-to-sound](#post-v1video-to-sound)
+- [POST /v1/video-to-video-sound](#post-v1video-to-video-sound)
+- [POST /v1/video-analysis](#post-v1video-analysis)
+- [POST /v1/audio-ducking](#post-v1audio-ducking)
+- [POST /v1/dubbing](#post-v1dubbing)
+- [POST /v1/proofread](#post-v1proofread)
+- [GET /v1/tasks/{task_id}](#get-v1taskstask_id)
+- [GET /v1/account/services](#get-v1accountservices)
+- [GET /v1/account/usage](#get-v1accountusage)
+- [Errors](#errors)
+- [MCP server differences](#mcp-server-differences)
+
+## Basics
+
+| Item | Value |
+|------|-------|
+| Base URL | `https://api.sonilo.com` |
+| Auth | `Authorization: Bearer $SONILO_API_KEY` |
+| API keys | `sk-…`, created at https://platform.sonilo.com/dashboard/api-keys |
+| Request body | `multipart/form-data` for endpoints that take a file; form fields otherwise |
+| Video input | Upload a file as `video`, or pass `video_url`. Exactly one of the two. |
+| OpenAPI spec | `https://platform.sonilo.com/openapi.json` |
+| Hosted MCP server | `https://api.sonilo.com/mcp` (OAuth sign-in, no key) |
+
+### Duration caps
+
+Over the cap the request is rejected with `422` before anything is charged. It
+is never truncated.
+
+| Endpoint | Max video length |
+|----------|------------------|
+| `/v1/video-to-music`, `/v1/video-to-video-music` | 360 s (6 min) |
+| `/v1/video-to-sfx`, `/v1/video-to-video-sfx` | 480 s (8 min) |
+| `/v1/video-to-sound`, `/v1/video-to-video-sound` | 480 s (8 min) |
+| `/v1/video-analysis` | 480 s (8 min) |
+| `/v1/audio-ducking` | 360 s per input |
+| `/v1/dubbing` | 300 s (5 min), 300 MB |
+| `/v1/proofread` | 300 s (5 min), 300 MB |
+
+Uploads are also capped by the account's upload-size limit, reported as
+`max_upload_size_mb` by [`GET /v1/account/services`](#get-v1accountservices)
+(typically 300 MB). For multi-track videos, the default audio track is used.
+
+### Content restriction
+
+Prompts cannot reference specific artists, bands, or copyrighted lyrics.
+
+## Async tasks
+
+Most endpoints are task-based. The `POST` returns `202` with a task id:
+
+```json
+{"task_id": "a1b2c3d4-..."}
+```
+
+Poll [`GET /v1/tasks/{task_id}`](#get-v1taskstask_id) until `status` is
+`succeeded` or `failed`. Download result files promptly rather than storing
+the links: some result URLs (proofread's `.srt` files, for one) are presigned
+and expire.
+
+| Endpoint | Mode |
+|----------|------|
+| `/v1/text-to-music`, `/v1/video-to-music` | Returns the audio file in the response by default. Send `mode=async` for a task. `stems` requires it on both; on video-to-music, so do `preserve_speech`, `ducking` and `output_format=wav`. |
+| Every other generation endpoint | Always a task |
+| `/v1/account/*` | Plain `GET`, no task |
+
+A task is charged when it is accepted. A client-side timeout does not stop or
+refund it; poll the same `task_id` instead of submitting again.
+
+## Billing
+
+- Charged up front at submission. Failed generations are refunded
+  automatically. A retry by the caller is a new charge.
+- There is no preview or low-cost mode (dubbing's one-time free preview is the
+  exception, see [dubbing](#post-v1dubbing)).
+- Music and SFX are separate task types with separate per-second rates.
+  `/v1/video-to-sound` produces both in one call and bills once.
+- `variants_num` scales cost linearly. Any value above 1 is never covered by
+  the free trial.
+- Self-serve accounts start with a small free-trial allowance per service, no
+  card required. `trial[service].remaining` on
+  [`GET /v1/account/services`](#get-v1accountservices) shows what is left.
+- Billing and top-up: https://platform.sonilo.com/dashboard/billing
+
+## Licensing
+
+Every music track generated by the API is licensed (music licensed via
+Shutterstock) and cleared for commercial use on social, brand content, and
+advertising.
+
+## POST /v1/video-to-music
+
+Score a video with original music. The model watches the video and matches
+pacing, motion and emotion; output length follows the video. Cut-point
+alignment is best-effort, not a frame-exact guarantee. Returns audio only;
+for the video back with the music muxed in, use
+[`/v1/video-to-video-music`](#post-v1video-to-video-music).
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `video` | file | Yes* | Video file. Documented formats: `.mp4/.mov/.avi/.wmv/.webm/.mkv`. Max 360 s. |
+| `video_url` | string | Yes* | HTTPS URL to a video, instead of `video`. |
+| `prompt` | string | No | Style hint. Omit to let the footage lead. Section-shaped text ("calm intro, driving second half") can steer segmented music when `segments` is not sent and `variants_num` is 1. |
+| `segments` | JSON array | No | Explicit section plan, entries `{start, prompt, label}`. Starts are rounded to whole seconds. See the OpenAPI spec for the full schema. |
+| `mode` | string | No | `async` returns a task instead of the audio file. |
+| `output_format` | string | No | `m4a` (default) or `wav`. `wav` requires `mode=async`. |
+| `variants_num` | integer | No | 1–10, default 1. Distinct creative directions in one request, one track each. Cost scales linearly. Above 1 runs asynchronously. |
+| `prompt_influence` | number | No | 0–1, default 0.5. How strictly the music follows the prompt versus the video. Free. |
+| `preserve_speech` | boolean | No | Default `false`. Keeps the source speech: adds a speech stem and a speech+music mix to the result at no extra charge. Requires `mode=async` (`400` otherwise). |
+| `ducking` | boolean | No | Default on in async mode, independent of `preserve_speech`. Adds ducked music (music dipped under the source voice). Free, best-effort. Not available without `mode=async` (`ducking=true` there is a `400`). |
+| `stems` | boolean | No | Default `false`. Free. Splits each generated track into `drums`, `bass`, `vocals`, `other`. Requires `mode=async` (`400` otherwise). See [Stems](#stems). |
+
+*Send exactly one of `video` or `video_url`.
+
+Mix levels are not promptable; gain is set server-side. Negative prompts
+("no vocals") are best-effort.
+
+### Example: audio in the response
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/video-to-music" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  -F "video=@trailer.mp4" \
+  -F "prompt=Build suspense, then resolve with a warm cinematic finish" \
+  --output score.m4a
+```
+
+The returned m4a usually runs about 80 ms longer than the video (AAC frame
+padding). It is not sync drift; mux with `-shortest`.
+
+### Example: async, keeping speech
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/video-to-music" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  -F "video=@interview.mp4" \
+  -F "mode=async" \
+  -F "preserve_speech=true"
+# -> 202 {"task_id": "..."}; poll GET /v1/tasks/{task_id}
+```
+
+### Stems
+
+With `stems=true` (on `/v1/video-to-music` and `/v1/text-to-music`) the
+finished task carries a `stems` array next to `audio`:
+
+```json
+"stems": [
+  {
+    "stream_index": 0,
+    "drums":  { "url": "…", "content_type": "audio/mp4", "file_size": 2913044 },
+    "bass":   { "url": "…", "content_type": "audio/mp4", "file_size": 2870211 },
+    "vocals": { "url": "…", "content_type": "audio/mp4", "file_size": 2794560 },
+    "other":  { "url": "…", "content_type": "audio/mp4", "file_size": 3011830 }
+  }
+]
+```
+
+- Stems split the generated music, never the video's own audio.
+- Match entries to tracks by `stream_index`, not array position. A stream
+  whose separation failed is absent, so `stems` can be shorter than `audio`.
+- `stems_error` (string) appears when separation failed wholly or partly, or
+  was skipped, possibly alongside a partial `stems`. The generation itself
+  succeeded and the audio URLs are valid.
+- Separation runs after generation: typically 2–6 more minutes, giving up
+  after 30 minutes.
+- Stems normally follow `output_format`; each stem's `content_type` reports
+  what was delivered. Melodic instruments land in `other`; on instrumental
+  tracks `vocals` is near-silent.
+
+## POST /v1/video-to-video-music
+
+Same scoring as [`/v1/video-to-music`](#post-v1video-to-music), but the result
+is a new `.mp4` with the music muxed in. Always a task.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `video` / `video_url` | file / string | Yes* | As on `/v1/video-to-music`. Max 360 s. |
+| `prompt` | string | No | Style hint. |
+| `segments` | JSON array | No | As on `/v1/video-to-music`. |
+| `keep_original_sound` | boolean | No | Default `false`: the source's own audio (dialogue, room tone, effects) is dropped and the video carries the music alone. `true` keeps the whole source track with the music mixed under it. Supersedes `preserve_speech`. |
+| `preserve_speech` | boolean | No | Default `false`. Keeps only the source speech audible in the output. |
+| `ducking` | boolean | No | Default `false` here. Dips the music under the source voice; only has an effect with `keep_original_sound` or `preserve_speech`. |
+| `variants_num` | integer | No | 1–10, default 1. Cost scales linearly. |
+| `prompt_influence` | number | No | 0–1, default 0.5. |
+
+*Send exactly one of `video` or `video_url`.
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/video-to-video-music" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  -F "video=@trailer.mp4" \
+  -F "prompt=cinematic, uplifting" \
+  -F "keep_original_sound=true" \
+  -F "ducking=true"
+# -> 202 {"task_id": "..."}; poll GET /v1/tasks/{task_id}
+```
+
+## POST /v1/text-to-music
+
+Generate music from a text prompt alone, with no video.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `prompt` | string | Yes | 1–1000 characters. Genre, mood, tempo, instrumentation, energy arc. |
+| `duration` | integer | No | 5–360 seconds. If omitted, a length is inferred from the prompt; a vague prompt can resolve long (about 180 s for "lofi" alone) and is billed at that length. |
+| `mode` | string | No | `async` returns a task instead of the audio file. |
+| `output_format` | string | No | `m4a` (default) or `wav`. `wav` is produced in async mode. |
+| `variants_num` | integer | No | 1–10, default 1. Cost scales linearly. Above 1 runs asynchronously. |
+| `stems` | boolean | No | Default `false`. Free. Requires `mode=async`. See [Stems](#stems). |
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/text-to-music" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  --data-urlencode "prompt=A chill lo-fi hip hop beat with jazzy piano chords" \
+  --data-urlencode "duration=30" \
+  --output output.m4a
+```
+
+With stems:
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/text-to-music" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  --data-urlencode "prompt=A chill lo-fi hip hop beat with jazzy piano chords" \
+  --data-urlencode "duration=30" \
+  --data-urlencode "mode=async" \
+  --data-urlencode "stems=true"
+# -> {"task_id": "..."}; poll GET /v1/tasks/{task_id} for audio + stems
+```
+
+## POST /v1/video-to-sfx
+
+Generate sound effects matched to a video: footsteps, impacts, ambience,
+foley. Optionally pin sounds to time ranges with `segments`. Returns audio
+only. Always a task.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `video` | file | Yes* | Documented formats: `.mp4/.mov/.webm/.m4v/.gif` (gif must be animated). Max 480 s. |
+| `video_url` | string | Yes* | HTTP(S) URL to a video, instead of `video`. |
+| `prompt` | string | No | Overall description, max 2000 characters (longer is an error, not truncated). Omit to let the model read the video. |
+| `segments` | JSON array | No | `[{"start": float, "end": float, "prompt": string}, ...]`. Rules below. |
+| `audio_format` | string | No | `aac` (default, `.m4a`), `wav`, `mp3` or `flac`. |
+
+*Send exactly one of `video` or `video_url`.
+
+### `segments` rules
+
+All enforced by the backend before any charge (`422`):
+
+- At most 30 entries; the raw JSON at most 40,000 characters.
+- First `start` is `0` (±0.001).
+- Contiguous: each `end` equals the next `start` (±0.01 s).
+- Every `end` is greater than its `start`.
+- Every segment `prompt` is non-empty, at most 200 characters.
+- The last `end` is at most the video duration + 0.05 s. It does not have to
+  reach the end; an uncovered tail gets no generated SFX.
+
+Sub-second timestamps pass through as-is (unlike music segments, which round
+to whole seconds). Exclusions ("no crowd noise") in either prompt are
+best-effort.
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/video-to-sfx" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  -F "video=@action-scene.mp4" \
+  -F "prompt=Footsteps on gravel, distant traffic, a door slam"
+# -> 202 {"task_id": "..."}; poll GET /v1/tasks/{task_id}
+```
+
+With segments:
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/video-to-sfx" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  -F "video=@clip.mp4" \
+  -F 'segments=[{"start":0,"end":2,"prompt":"footsteps on gravel"},{"start":2,"end":5,"prompt":"car door slam, engine turning over"}]'
+```
+
+## POST /v1/video-to-video-sfx
+
+Same as [`/v1/video-to-sfx`](#post-v1video-to-sfx) (`video`/`video_url`,
+`prompt`, `segments`, same rules and 480 s cap), but the result is a new
+`.mp4` with the SFX muxed in. No `audio_format`. Always a task.
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/video-to-video-sfx" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  -F "video=@clip.mp4" \
+  -F "prompt=footsteps, distant thunder"
+# -> 202 {"task_id": "..."}; poll GET /v1/tasks/{task_id}
+```
+
+## POST /v1/text-to-sfx
+
+Generate one sound effect from a text description alone. Always a task.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `prompt` | string | Yes | 1–2000 characters. Describe the action and materials. |
+| `duration` | number | No | 0.5–180 seconds, fractions allowed. Default 8. |
+| `audio_format` | string | No | `aac` (default, `.m4a`), `wav`, `mp3` or `flac`. |
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/text-to-sfx" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  --data-urlencode "prompt=Thunder rumbling in the distance with light rain" \
+  --data-urlencode "duration=6"
+# -> 202 {"task_id": "..."}; poll GET /v1/tasks/{task_id}
+```
+
+## POST /v1/video-to-sound
+
+Generate music and sound effects for a video in one call, balanced and mixed
+against each other by the backend, billed once. Returns one mixed audio file.
+Always a task.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `video` | file | Yes* | Documented formats: `.mp4/.mov/.webm/.m4v/.gif` (gif must be animated). Max 480 s. |
+| `video_url` | string | Yes* | HTTP(S) URL, instead of `video`. |
+| `music_prompt` | string | No | Style hint for the music bed, max 2000 characters. |
+| `sfx_prompt` | string | No | Description of the SFX layer, max 2000 characters. |
+| `segments` | JSON array | No | Per-segment SFX, same schema and rules as [`/v1/video-to-sfx`](#segments-rules). |
+| `preserve_speech` | boolean | No | Default `false`. Keeps the source speech audible in the mix. |
+| `ducking` | boolean | No | Default `false`. Brings the source speech into the mix and dips the music under it. With `ducking` and `preserve_speech` both off, the result is generated music and effects only. |
+| `output_format` | string | No | `wav` (default), `m4a` or `mp3` (320 kbps). Applies to the combined track only. |
+| `variants_num` | integer | No | 1–10, default 1. Cost scales linearly. |
+
+*Send exactly one of `video` or `video_url`.
+
+The finished task also holds the individual music, SFX and processed-music
+layers alongside the combined result.
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/video-to-sound" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  -F "video=@trailer.mp4" \
+  -F "music_prompt=Cinematic, building tension" \
+  -F "sfx_prompt=Footsteps, wind, distant thunder"
+# -> 202 {"task_id": "..."}; poll GET /v1/tasks/{task_id}
+```
+
+## POST /v1/video-to-video-sound
+
+Same as [`/v1/video-to-sound`](#post-v1video-to-sound), but the result is a
+new `.mp4` with the mixed soundtrack muxed in. No `output_format`. Adds
+`keep_original_sound` (default `false`: the source audio is dropped; `true`
+keeps the whole source track under the generated mix, and supersedes
+`preserve_speech`). Always a task.
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/video-to-video-sound" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  -F "video=@trailer.mp4" \
+  -F "music_prompt=Cinematic, building tension" \
+  -F "keep_original_sound=true"
+# -> 202 {"task_id": "..."}; poll GET /v1/tasks/{task_id}
+```
+
+## POST /v1/video-analysis
+
+Analyze a video and return a creative brief for its sound. Generates no
+audio, no video and no file; the brief is text to feed into the generation
+endpoints. Paid, with a 10-second billing floor. Always a task.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `video` / `video_url` | file / string | Yes* | Max 480 s. |
+| `prompt` | string | No | Max 2000 characters. Steers what the analysis attends to (e.g. "focus on the chase"); it is not the music prompt. |
+| `variants_num` | integer | No | 1–5, default 1. Independent briefs, billed per brief. |
+| `mode` | string | No | `both` (default), `music` or `sfx`. Same price for all three. Anything else is a `422`. |
+
+*Send exactly one of `video` or `video_url`.
+
+### Result
+
+```json
+{
+  "task_id": "…",
+  "status": "succeeded",
+  "segments": [
+    {"start": 0, "end": 12, "label": "intro", "prompt": "sparse piano, rising"},
+    {"start": 12, "end": 30, "label": "none", "prompt": "full strings, driving"}
+  ],
+  "variations": [
+    {"prompt": "cinematic strings, 90bpm, building to a brass hit"},
+    {"prompt": "lo-fi hip hop, warm keys, steady throughout"}
+  ],
+  "mode": "both",
+  "sfx_segments": [
+    {"start": 0, "end": 4, "label": "none", "prompt": "wind across an empty lot, distant traffic hum"}
+  ],
+  "sfx_prompt": "urban chase: engine roar, tires skidding on wet asphalt, passing sirens"
+}
+```
+
+- `variations[i].prompt` is ready to pass as the `prompt` of a generation
+  endpoint.
+- `segments` have whole-second bounds.
+- `sfx_segments` and `sfx_prompt` appear in `both` mode only. `sfx_prompt` is
+  authored once per call regardless of `variants_num`.
+- `mode=music` returns only `segments` + `variations`. `mode=sfx` returns the
+  sound-design brief in `segments` + `variations` (labels `"none"`).
+- A failed analysis carries `error.code` `ANALYSIS_FAILED` (also possible:
+  `TRANSFER_FAILED`, `INVALID_PAYLOAD`, `GENERATION_FAILED`) and is refunded.
+- `503` means the endpoint is temporarily disabled server-side, not an auth or
+  balance problem.
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/video-analysis" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  -F "video=@trailer.mp4" \
+  -F "variants_num=2"
+# -> 202 {"task_id": "...", "status": "processing"}
+```
+
+## POST /v1/audio-ducking
+
+Mix an existing music track under a voice track, lowering the music wherever
+the voice speaks. Generates nothing new. The voice input may be a video: its
+audio is used as the voice and the ducked mix is muxed back into a new video.
+Always a task.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `voice_file` | file | Yes* | Audio (`.wav/.mp3/.m4a/.aac/.ogg/.flac`) or video (`.mp4/.mov/.avi/.wmv/.webm/.mkv`). |
+| `voice_url` | string | Yes* | HTTPS URL, instead of `voice_file`. |
+| `music_file` | file | Yes† | Audio only. |
+| `music_url` | string | Yes† | HTTPS URL, instead of `music_file`. |
+
+\*Exactly one of `voice_file` / `voice_url`. †Exactly one of `music_file` /
+`music_url`. Files and URLs can be mixed. Each input is capped at 360 s.
+
+The result is a `.wav` when the voice input was audio, or an `.mp4` when it
+was a video.
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/audio-ducking" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  -F "voice_file=@interview.mp4" \
+  -F "music_file=@background-track.wav"
+# -> 202 {"task_id": "..."}; poll GET /v1/tasks/{task_id}
+```
+
+## POST /v1/dubbing
+
+Dub a video into other languages: speech is translated and re-voiced, one new
+`.mp4` per target language. Billed per language. Always a task; a run can take
+up to about two hours.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `video` | file | Yes* | Documented formats: `.mp4/.mov/.webm/.m4v/.gif`. Max 300 s, 300 MB. |
+| `video_url` | string | Yes* | Must be `https` (plain http is rejected). |
+| `languages` | JSON array string | No | Target codes, e.g. `["es","fr"]`. Default `["zh_cn","es","fr"]`, billed as three languages. |
+| `ducking` | boolean | No | Default off. Ducks the background bed under the dubbed voice. Free. |
+| `lipsync` | boolean | No | Default `true`. `false` leaves the picture untouched (original resolution and frame rate) and replaces only the audio. Same price. |
+| `subtitles[<language>]` | file / string | No | One target-language script per language: an uploaded `.srt`/`.vtt` part or an https URL. The dub speaks these lines verbatim instead of translating. |
+| `export_srt` | boolean | No | Default `false`. Returns each language's lines re-timed against its delivered audio. Requires `subtitles` (`422` otherwise). |
+
+*Send exactly one of `video` or `video_url`.
+
+Supported language codes: `en`, `zh_cn`, `ja`, `ko`, `pt`, `pt_br`, `es`,
+`es_419`, `de`, `fr`, `it`, `ru`, `th`, `ar`, `tr`, `vi`, `id`, `ta`, `ml`,
+`kn`, `gu`, `pa_in`, `sd_in`, `hi`. An unsupported code is a `422` before any
+charge.
+
+### `subtitles` rules
+
+Checked before anything is charged:
+
+- Bracket keys only: `subtitles[es]`. A bare `subtitles`, a repeated key, or a
+  near-miss code (`subtitles[zh-CN]`; codes use underscores) is refused.
+- The key set must equal `languages` exactly. With `languages` omitted, all
+  three default languages need a script.
+- Scripts are target-language text, not source transcripts; a script whose
+  language does not match its key is rejected.
+- `.srt` or `.vtt` (lower-case extension), at most 1 MiB each.
+- A blocked preflight is `422` with `code: SUBTITLE_PREFLIGHT_BLOCKED`, naming
+  the languages and issue codes, with a per-language report in `details`.
+
+### Result
+
+- `outputs`: `{<language>: <mp4 url>}`.
+- With `export_srt`: `subtitles` (`{<language>: <srt url>}`), plus
+  `subtitle_preflight` and `subtitle_export`. The `202` also carries
+  `subtitle_preflight`.
+- A blocked export does not fail the task. The video for that language is
+  still delivered and charged; `subtitle_export[lang].status` is `exported`,
+  `exported_review_required` or `blocked`.
+- Report numbers (`cue_count`, `alignment_loss`) can arrive as strings.
+
+### Free preview
+
+A self-serve account's first single-language call with no `subtitles` is a
+free 15-second preview: only the first 15 seconds are dubbed, and the task
+carries `trial_preview` with `preview_seconds`, `source_duration_seconds`,
+`trimmed`, `languages`, `full_video_cost_usd` and a `message`. Every later
+call is billed.
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/dubbing" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  -F "video=@product-demo.mp4" \
+  -F 'languages=["es","fr"]' \
+  -F "subtitles[es]=@demo.es.srt" \
+  -F "subtitles[fr]=https://example.com/demo.fr.vtt" \
+  -F "export_srt=true"
+# -> 202 {"task_id": "...", "subtitle_preflight": {...}}
+```
+
+## POST /v1/proofread
+
+Transcribe a video and translate the transcript into editable `.srt` files,
+one per target language plus the detected source language. Voices nothing and
+returns no video. The corrected files go to [`/v1/dubbing`](#post-v1dubbing)
+as `subtitles`. Always a task; typically 20–45 s for a 3.4-minute clip.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `video` | file | Yes* | Max 300 s, 300 MB. Must have an audio track. |
+| `video_url` | string | Yes* | Must be `https`. |
+| `languages` | JSON array string | No | Same codes as dubbing. Omit or send `[]` for the source-language transcript alone. |
+| `source_language` | string | No | Hint for transcription, one of the same codes. Omitted = detected. Does not change the price. |
+
+*Send exactly one of `video` or `video_url`.
+
+Billing: video seconds × max(1, number of target languages) × $0.001/sec, with
+a 10-second floor; account discount applies. Self-serve accounts get 2 free
+runs.
+
+### Result
+
+```json
+{
+  "task_id": "…",
+  "status": "succeeded",
+  "source_language": "en",
+  "subtitles": {
+    "en": "https://…/en.srt",
+    "es": "https://…/es.srt",
+    "fr": "https://…/fr.srt"
+  },
+  "cue_count": 65,
+  "warnings": {
+    "fr": [
+      {"cue": 33, "code": "high_text_speed", "severity": "warning", "characters_per_second": 26.92}
+    ]
+  },
+  "duration_seconds": 206.32
+}
+```
+
+- `subtitles` always includes the detected source language. Drop it before
+  passing the files to dubbing, whose keys must equal `languages` exactly.
+- `warnings` are non-blocking.
+- Failure codes: `SOURCE_DOWNLOAD_FAILED`, `SOURCE_PROCESSING_FAILED`,
+  `TRANSCRIPTION_EMPTY` (the audio had no speech), `TRANSCRIPTION_FAILED`,
+  `TRANSLATION_FAILED`, `PREFLIGHT_BLOCKED`, `PREFLIGHT_UNAVAILABLE`,
+  `TRANSFER_FAILED`. Failed tasks are refunded.
+- `503` means the endpoint is temporarily disabled server-side.
+
+```bash
+curl -X POST "https://api.sonilo.com/v1/proofread" \
+  -H "Authorization: Bearer $SONILO_API_KEY" \
+  -F "video=@product-demo.mp4" \
+  -F 'languages=["es","fr"]' \
+  -F "source_language=en"
+# -> 202 {"task_id": "...", "status": "processing"}
+```
+
+## GET /v1/tasks/{task_id}
+
+Check an async task and read its result. Free.
+
+| `status` | Meaning |
+|----------|---------|
+| `processing` | Still running. Poll again after a short wait. |
+| `succeeded` | Result fields are present (audio or video URLs, a brief, or `.srt` URLs, depending on the endpoint). |
+| `failed` | Carries the error code and message, and whether the charge was refunded. |
+| anything else | Treat as transient and poll again. |
+
+A `404` means the id is wrong, or it came from a call that returned the audio
+directly (text-to-music or video-to-music without `mode=async`); those have no
+task.
+
+```bash
+curl "https://api.sonilo.com/v1/tasks/a1b2c3d4-..." \
+  -H "Authorization: Bearer $SONILO_API_KEY"
+```
+
+## GET /v1/account/services
+
+Available services, limits and free-trial allowance. Free.
+
+```json
+{
+  "available_services": [...],
+  "rpm_limit": 60,
+  "concurrency_limit": 4,
+  "discount_factor": 1.0,
+  "max_upload_size_mb": 300,
+  "trial": {
+    "text_to_music": {"granted": 2, "used": 0, "remaining": 2},
+    "video_to_music": {"granted": 1, "used": 1, "remaining": 0}
+  }
+}
+```
+
+- `trial` is absent for accounts with no free-trial allowance.
+- A service missing from `trial` bills from the first call.
+- When `trial[service].remaining` is `0`, that service returns `402
+  trial_exhausted` until a payment method is added.
+
+```bash
+curl "https://api.sonilo.com/v1/account/services" \
+  -H "Authorization: Bearer $SONILO_API_KEY"
+```
+
+## GET /v1/account/usage
+
+Usage summary and per-day breakdown. Free.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `days` | integer | No | 1–365. |
+
+```bash
+curl "https://api.sonilo.com/v1/account/usage?days=7" \
+  -H "Authorization: Bearer $SONILO_API_KEY"
+```
+
+## Errors
+
+| Code | Meaning |
+|------|---------|
+| 400 | An async-only parameter sent to text-to-music or video-to-music without `mode=async` (`stems`; on video-to-music also `preserve_speech`, `ducking=true`) |
+| 401 | Invalid or revoked API key |
+| 402 | Insufficient balance, or free trial exhausted (`trial_exhausted`) |
+| 413 | File too large |
+| 422 | Invalid parameters: video over the duration cap, malformed `segments`, unsupported language code, a `subtitles` preflight block. Rejected before any charge. |
+| 429 | Rate limit (`rpm_limit`, `concurrency_limit` on `/v1/account/services`) |
+| 503 | Video analysis or proofread temporarily disabled server-side |
+
+A `422` body looks like this (a video over the video-to-sfx cap):
+
+```json
+{"code": "unprocessable_entity", "message": "Video duration 540.0s exceeds the 480s video-to-sfx maximum"}
+```
+
+## MCP server differences
+
+The MCP tools use the same field names and limits, with three structural
+differences:
+
+1. MCP takes `video_url` rather than a file upload (the local `sonilo-mcp`
+   package also accepts a `video_path` and uploads it for you).
+2. MCP is always async: tools return or wait on a `task_id`, with no `mode`
+   parameter.
+3. The MCP video-to-music tool has no `segments` parameter; segmented music
+   there works through section-shaped prompt text.

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "skills",
   "displayName": "Sonilo",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "Licensed music, sound effects, dubbing, and audio ducking from text or video, via Sonilo's hosted OAuth MCP server and the skills that route to it.",
   "compat": {
     "source": "native",
