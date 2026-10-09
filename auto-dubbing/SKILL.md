@@ -62,7 +62,7 @@ dubbing(
 )
 ```
 
-> On the **hosted** server every subtitle value must be an `https://` URL — that server has no filesystem to read a path from, and `video_url` is likewise its only source. The **local** `sonilo-mcp` server takes either a local `.srt`/`.vtt` path or an https URL.
+> On the **hosted** server every subtitle value must be an `https://` URL — that server has no filesystem to read a path from, and `video_url` is likewise its only source. A local video or `.srt`/`.vtt` file gets such a URL from the hosted server's `create_upload_url` tool (steps in [preflight](../references/preflight.md), Step 4). The **local** `sonilo-mcp` server takes either a local `.srt`/`.vtt` path or an https URL.
 
 ### Python (`pip install sonilo`)
 

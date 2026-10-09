@@ -64,9 +64,25 @@ except `preserve_speech`'s speech+music mux.
 
 ## Step 4 — API vs MCP differences
 
-- The hosted MCP surface takes **`video_url` only** and is **always async**:
+- The hosted MCP surface takes **URLs only** and is **always async**:
   tools return a `task_id`; fetch results with `get_generation_task` (`get_sfx_task` on the local server). (The
   local `sonilo-mcp` package also accepts a `video_path` and uploads for you.)
+- **A local file on the hosted server** goes through `create_upload_url`, a
+  free hosted-only tool — use it when it is among the connected tools and you
+  can run a shell command:
+  1. Call `create_upload_url(filename, size_bytes)` with the file's name and
+     its exact size in bytes. Video, audio, `.srt` and `.vtt` only, up to the
+     account's `max_upload_size_mb`.
+  2. PUT the raw bytes to the returned `upload_url`:
+     `curl -T <path> "<upload_url>"`. A body of any other size is refused
+     with 403, and the URL expires after `expires_in_seconds`.
+  3. Pass the returned `file_url` wherever a tool takes a URL (`video_url`,
+     `voice_url`, a `subtitles` value).
+
+  `upload_url` is a credential for that one upload, not a link to show the
+  user. If the tool is not connected, or the host cannot make the PUT (a chat
+  host with no shell), use the CLI or an SDK instead, or ask for a public
+  https URL.
 - MCP `video_to_music` has **no `segments` parameter** — segmented music via
   MCP works only by describing sections inside the prompt text (see
   [music prompting](./music-prompting.md)).
