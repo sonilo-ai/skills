@@ -49,8 +49,11 @@ a single job, and do not announce the choice.
 
 `analyze_video` takes a **local file only on the local server**. The hosted
 (OAuth plugin) server is URL-only: it exposes `video_url` and nothing else. If
-the user's video is a local file and you are on the hosted server, use the CLI
-or an SDK instead of trying `video_path` — it is not a parameter there.
+the user's video is a local file and you are on the hosted server, do not try
+`video_path` — it is not a parameter there. Upload the file with the hosted
+server's `create_upload_url` tool and pass the `file_url` it returns as
+`video_url` (steps in [preflight](../references/preflight.md), Step 4), or use
+the CLI or an SDK.
 
 ## Quick Start
 

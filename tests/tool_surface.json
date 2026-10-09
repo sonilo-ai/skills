@@ -14,7 +14,7 @@
     "local_from": "sonilo-mcp 0.25.0 (PyPI)",
     "hosted_from": "sonilo-api-dashboard backend/app/mcp_server.py",
     "date": "2026-09-18",
-    "_note": "`subtitles` and `export_srt` on dubbing are on both surfaces as of sonilo-mcp 0.23.0. They differ in what a value may be: the hosted server has no filesystem and takes https URLs only, while the local one also takes a .srt/.vtt path under SONILO_MCP_BASE_PATH. `mode` on analyze_video (both/music/sfx, default both) is live on the hosted server and recorded on `local.analyze_video` and the CLI's `--mode` ahead of the sonilo-mcp / sonilo-cli releases that carry it; --refresh agrees once the next sonilo-mcp is on PyPI. The `proofread` entries (hosted, local, the `proofread` CLI command and its flags) were recorded BY HAND from the unreleased sonilo-mcp 0.26.0 / sonilo-cli 0.19.0 sources on 2026-09-18 — none of those releases are published yet, so `--refresh` cannot see them and would report `proofread` as removed until sonilo-mcp 0.26.0 lands on PyPI."
+    "_note": "`subtitles` and `export_srt` on dubbing are on both surfaces as of sonilo-mcp 0.23.0. They differ in what a value may be: the hosted server has no filesystem and takes https URLs only, while the local one also takes a .srt/.vtt path under SONILO_MCP_BASE_PATH. `mode` on analyze_video (both/music/sfx, default both) is live on the hosted server and recorded on `local.analyze_video` and the CLI's `--mode` ahead of the sonilo-mcp / sonilo-cli releases that carry it; --refresh agrees once the next sonilo-mcp is on PyPI. The `proofread` entries (hosted, local, the `proofread` CLI command and its flags) were recorded BY HAND from the unreleased sonilo-mcp 0.26.0 / sonilo-cli 0.19.0 sources on 2026-09-18 — none of those releases are published yet, so `--refresh` cannot see them and would report `proofread` as removed until sonilo-mcp 0.26.0 lands on PyPI. `create_upload_url` (hosted only, by design: the local server reads a path itself) was recorded BY HAND on 2026-10-08 from sonilo-api-dashboard#407, ahead of that PR's deploy."
   },
   "hosted": {
     "get_account_services": [],
@@ -23,6 +23,10 @@
     ],
     "get_generation_task": [
       "task_id"
+    ],
+    "create_upload_url": [
+      "filename",
+      "size_bytes"
     ],
     "text_to_sfx": [
       "prompt",

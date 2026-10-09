@@ -36,7 +36,7 @@ Added 2026-08-16 with the endpoint itself; verified against the shipped backend 
 - [x] Async, worker-executed: `202` + `task_id`, result on `GET /v1/tasks/{id}`. Failure carries `error.code` `ANALYSIS_FAILED` and is refunded; `TRANSFER_FAILED`, `INVALID_PAYLOAD` and `GENERATION_FAILED` are also possible depending on where it broke.
 - [x] `503 "Video analysis is temporarily unavailable"` is a server-side kill switch (`PROMPT_SERVICE_ENABLED`), not an auth or balance problem. No retry loop fixes it.
 - [x] The variation prompts are **narrower than what the upstream produces** by product decision: `negative_prompt`, `thinking`, `structure_source` and the variation title/summary/tags are stripped before the envelope is built and are not recoverable from the task.
-- [x] ⚠️ **Input differs by MCP server**: the hosted server exposes `video_url` only; local `sonilo-mcp` (0.17.0+) also takes `video_path`. Both SDKs and both CLIs accept a local file or a URL.
+- [x] ⚠️ **Input differs by MCP server**: the hosted server exposes `video_url` only; local `sonilo-mcp` (0.17.0+) also takes `video_path`. Both SDKs and both CLIs accept a local file or a URL. A local file reaches the hosted server through `create_upload_url` — see its section below.
 
 ## stems (text_to_music + video_to_music)
 
@@ -147,3 +147,16 @@ differences from the client sources. Not from an engineering conversation.
 
 - Public endpoints (re-verified 2026-08-12 against `platform.sonilo.com/openapi.json`): `/v1/account/services` · `/v1/account/usage` · `/v1/text-to-music` · `/v1/text-to-sfx` · `/v1/video-to-music` · `/v1/video-to-sfx` · `/v1/video-to-video-music` · `/v1/video-to-video-sfx` · `/v1/video-to-sound` · `/v1/video-to-video-sound` · `/v1/audio-ducking` · `/v1/dubbing` · `/v1/video-analysis` (added 2026-08-16) · `/v1/tasks/{task_id}`. ⚠️ Corrects the 2026-07-29 observation this replaces: a combined music+SFX endpoint now exists (`/v1/video-to-sound` for audio-only output, `/v1/video-to-video-sound` for video output), and video-out endpoints are in the public spec (`/v1/video-to-video-music`, `/v1/video-to-video-sfx`, `/v1/video-to-video-sound`) — consistent with line 32's MCP claim above. Dubbing (`/v1/dubbing`) also shipped since the earlier pass.
 - `VideoToMusicRequest` confirms REST `segments` param exists; also has `isolate_vocals` — **behavior unverified, not yet covered by the skills**.
+
+## create_upload_url (hosted MCP only)
+
+Recorded 2026-10-08 from sonilo-api-dashboard#407, ahead of its deploy. Until that ships the tool is not on the hosted server; every skill that names it is worded "when it is among the connected tools".
+
+- [x] **Hosted-only and free.** `create_upload_url(filename, size_bytes)` returns `upload_url`, `method` (`PUT`), `file_url`, `size_bytes`, `expires_in_seconds` and a `message`. No task, no charge, no trial use. The local `sonilo-mcp` has no such tool — it reads `video_path` itself.
+- [x] **The caller uploads, not the tool.** The bytes go in one HTTP PUT straight to storage (`curl -T <path> "<upload_url>"`); nothing passes through the MCP call.
+- [x] **Exact size is enforced by the signature**: a body whose length is not `size_bytes` is answered 403. Cap is the account's `max_upload_size_mb` (default 300 MB).
+- [x] **Extensions**: `.mp4 .mov .m4v .webm .mkv .avi .mp3 .wav .m4a .aac .flac .ogg .opus .srt .vtt`. Anything else is rejected before a URL is issued.
+- [x] **30 upload URLs per account per hour**; `upload_url` is valid 15 minutes. `file_url` is a stable Sonilo link that every hosted tool accepts as a URL input.
+- [x] **Uploads are temporary**: removed 7 days after upload. Not storage, and not a link to hand the user as a deliverable.
+- [x] Verified end to end before the PR: a 25 s / 12 MB local clip uploaded with `curl -T`, then `video_to_music(video_url=file_url)` returned a finished track.
+

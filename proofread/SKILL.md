@@ -56,8 +56,10 @@ plugin) server is URL-only: it exposes `video_url`, `languages` and
 `source_language` and nothing else — no `video_path` to read a file from, and
 no `output_directory`, because it has no filesystem. There the `.srt` URLs come
 back on the task and you fetch them yourself. If the user's video is a local
-file and you are on the hosted server, use the CLI or an SDK instead of trying
-`video_path` — it is not a parameter there.
+file and you are on the hosted server, do not try `video_path` — it is not a
+parameter there. Upload the file with the hosted server's `create_upload_url`
+tool and pass the `file_url` it returns as `video_url` (steps in
+[preflight](../references/preflight.md), Step 4), or use the CLI or an SDK.
 
 Unlike `dubbing`, this call is quick: a few-minute clip with a handful of
 languages typically finishes in well under a minute, so the ordinary timeout is
