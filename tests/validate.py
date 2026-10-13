@@ -103,7 +103,7 @@ def check_frontmatter(skill_dir: Path, text: str) -> None:
 
 
 def markdown_files() -> list[Path]:
-    files = sorted(ROOT.glob("*/SKILL.md")) + [ROOT / "README.md"]
+    files = sorted(ROOT.glob("*/SKILL.md")) + [ROOT / "README.md", ROOT / "AGENTS.md"]
     files += sorted((ROOT / "references").glob("*.md"))
     return [f for f in files if f.exists()]
 
