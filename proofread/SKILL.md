@@ -161,7 +161,7 @@ line per non-blocking warning.
 # Transcript only, from a URL, with a hint for the spoken language.
 sonilo proofread --video-url https://example.com/clip.mp4 --source-language en
 
-# --timeout is the CLI's own wait (default 600 seconds). If it does expire, the
+# --timeout is the CLI's own wait (default 2700 seconds). If it does expire, the
 # task keeps running server-side.
 sonilo proofread --video clip.mp4 --languages ja --timeout 300
 sonilo tasks wait <task-id>

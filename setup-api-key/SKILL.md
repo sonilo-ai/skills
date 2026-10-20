@@ -187,7 +187,7 @@ Mention these only if relevant to what the user is trying to do — they all hav
 | `SONILO_API_URL` | `https://api.sonilo.com` | Only for a non-default deployment. |
 | `SONILO_MCP_BASE_PATH` | `~/Desktop` | Where generated files are saved by default, and the base for relative input paths. Suggest changing it if the user wants output elsewhere. |
 | `SONILO_MCP_ALLOW_ANY_PATH` | `false` | Set `true` only if the user needs to read/write files outside `SONILO_MCP_BASE_PATH` — explain this widens the tool's file-system access before suggesting it. |
-| `TIME_OUT_SECONDS` | `600` | Raise this if the user hits generation timeouts on long videos — note that `get_sfx_task` / `get_generation_task` (see [task-recovery](../task-recovery)) can always recover a timed-out result regardless of this setting. |
+| `TIME_OUT_SECONDS` | `600` | The per-request timeout for streamed music, uploads and downloads. Task-based tools (SFX, sound, ducking, async music) poll for at least 45 minutes regardless, because a task can wait that long for upstream capacity. Raise it if the user hits timeouts on long streamed generations — note that `get_sfx_task` / `get_generation_task` (see [task-recovery](../task-recovery)) can always recover a timed-out result regardless of this setting. |
 
 ## Safety Rules
 

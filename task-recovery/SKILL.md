@@ -59,7 +59,7 @@ import { SoniloClient } from "sonilo";
 const client = new SoniloClient(); // reads SONILO_API_KEY
 
 const status = await client.tasks.get("a1b2c3d4-...");   // single check
-const result = await client.tasks.wait("a1b2c3d4-...", { pollInterval: 2000, timeout: 600_000 });
+const result = await client.tasks.wait("a1b2c3d4-...", { pollInterval: 2000 }); // waits up to 45 min by default
 ```
 
 Same caveat as Python: pass the task's actual result type as `wait<T>()`'s generic (e.g. `wait<MusicTaskResult>(...)`) for a non-SFX task — see [sonilo-js's README](https://github.com/sonilo-ai/sonilo-js/tree/main/packages/sonilo#preserve-speech-async).
@@ -70,10 +70,10 @@ Same caveat as Python: pass the task's actual result type as `wait<T>()`'s gener
 sonilo tasks get a1b2c3d4-...
 
 # npm's sonilo-cli: --poll-interval/--timeout are milliseconds
-sonilo tasks wait a1b2c3d4-... --poll-interval 2000 --timeout 120000
+sonilo tasks wait a1b2c3d4-... --poll-interval 2000 --timeout 2700000
 
 # pip's sonilo-cli: the same flags are seconds
-sonilo tasks wait a1b2c3d4-... --poll-interval 2 --timeout 600
+sonilo tasks wait a1b2c3d4-... --poll-interval 2 --timeout 2700
 ```
 
 The two `sonilo-cli` packages (npm and pip) aren't the same codebase — double-check which one is installed before assuming a flag's units.
