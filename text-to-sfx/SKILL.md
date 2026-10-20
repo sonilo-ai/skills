@@ -117,7 +117,7 @@ auto-refund, but your own retry is a new charge.
 
 ## Recovering a Timed-Out Call
 
-Async on the backend already; a long generation can still exceed `TIME_OUT_SECONDS`. If it does, the error carries a `task_id` — the job keeps running (and is already charged). Call `get_sfx_task(task_id)` — `get_generation_task(task_id)` on the hosted server — later to retrieve the result; see [task-recovery](../task-recovery).
+Async on the backend already; the tool polls for at least 45 minutes (longer if `TIME_OUT_SECONDS` is set higher), because a request can queue that long for upstream capacity. An MCP host can still cut the call off sooner with its own tool-call timeout. If the call times out, the error carries a `task_id` — the job keeps running (and is already charged). Call `get_sfx_task(task_id)` — `get_generation_task(task_id)` on the hosted server — later to retrieve the result; see [task-recovery](../task-recovery).
 
 ## Output Files
 
