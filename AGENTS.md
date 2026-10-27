@@ -10,8 +10,8 @@ for Sonilo's music, sound effects, dubbing and audio ducking API. There is no
 build and no runtime code: every skill is a `SKILL.md` describing tools that
 live in other repos (the local `sonilo-mcp` server, the hosted MCP server at
 `https://api.sonilo.com/mcp`, the `sonilo` CLI and the SDKs). The same
-directory is also a Claude Code plugin marketplace (`.claude-plugin/`) and a
-Muse Code plugin (`.muse-plugin/`).
+directory is also a Claude Code plugin marketplace (`.claude-plugin/`), a
+Muse Code plugin (`.muse-plugin/`) and a Cursor plugin (`.cursor-plugin/`).
 
 ## Layout
 
@@ -27,6 +27,7 @@ tests/tool_surface.json   recorded tool names, parameters, defaults, CLI flags, 
 evals/routing/            trigger evals: does the right skill load for a query
 .claude-plugin/           plugin.json (skill list, version) + marketplace.json
 .muse-plugin/plugin.json  same skills and version, plus the hosted MCP server
+.cursor-plugin/plugin.json  same skills and version, plus the hosted MCP server (OAuth); logo in assets/
 ```
 
 ## Commands
@@ -56,9 +57,9 @@ skills describe change in other repos.
 - `banned_tokens` in `tool_surface.json` lists statements that used to be true.
   Do not reintroduce them.
 - Adding or renaming a skill: update `.claude-plugin/plugin.json`,
-  `.muse-plugin/plugin.json` and the table in `README.md`. Both manifests carry
-  the same version; bump it in both (commit titles end with the version, e.g.
-  `(2.5.1)`).
+  `.muse-plugin/plugin.json`, `.cursor-plugin/plugin.json` and the table in
+  `README.md`. All three manifests carry the same version; bump it in all of
+  them (commit titles end with the version, e.g. `(2.5.1)`).
 - When a check misses a bug you fixed by hand, add the case to `validate.py`.
 
 ## Using Sonilo from a skill

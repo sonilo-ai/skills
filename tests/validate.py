@@ -20,8 +20,9 @@ What it checks:
      two directions catch invention and a surface left stale behind the prose;
      the third catches silence about a flag that changes cost or output.
   4. Banned tokens — strings that were true once (see tool_surface.json).
-  5. Plugin manifests — the Muse Code manifest lists the same skills, at the
-     same version, as the Claude Code one, and points at the hosted server.
+  5. Plugin manifests — the Muse Code and Cursor manifests list the same
+     skills, at the same version, as the Claude Code one, and point at the
+     hosted server.
 
 Run: python tests/validate.py            # offline, this is what CI runs
      python tests/validate.py --refresh  # regenerate the local surface from an
@@ -351,8 +352,8 @@ HOSTED_MCP_URL = "https://api.sonilo.com/mcp"
 
 
 def check_plugin_manifests() -> None:
-    """Two manifests list the skills; a skill added to one and not the other
-    ships to one host silently missing."""
+    """Three manifests list the skills; a skill added to one and not the others
+    ships to a host silently missing."""
     claude = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())
     muse = json.loads((ROOT / ".muse-plugin" / "plugin.json").read_text())
     where = ".muse-plugin/plugin.json"
@@ -370,10 +371,27 @@ def check_plugin_manifests() -> None:
             fail(where, f"skill {s['id']!r} points at {s['path']!r}")
     if muse.get("version") != claude.get("version"):
         fail(where, f"version {muse.get('version')} but .claude-plugin/plugin.json is "
-                    f"{claude.get('version')} — bump both")
+                    f"{claude.get('version')} — bump all three")
     urls = [m.get("url") for m in muse.get("capabilities", {}).get("mcpServers", [])]
     if urls != [HOSTED_MCP_URL]:
         fail(where, f"mcpServers should be exactly the hosted server {HOSTED_MCP_URL}, got {urls}")
+
+    cursor = json.loads((ROOT / ".cursor-plugin" / "plugin.json").read_text())
+    where = ".cursor-plugin/plugin.json"
+    paths = cursor.get("skills", [])
+    if sorted(paths) != sorted(f"./{name}/SKILL.md" for name in expected):
+        fail(where, f"skills should be ./<name>/SKILL.md for exactly the skills in "
+                    f".claude-plugin/plugin.json, got {paths}")
+    if cursor.get("version") != claude.get("version"):
+        fail(where, f"version {cursor.get('version')} but .claude-plugin/plugin.json is "
+                    f"{claude.get('version')} — bump all three")
+    if not re.fullmatch(r"[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?", cursor.get("name", "")):
+        fail(where, f"name {cursor.get('name')!r} must be lowercase kebab-case")
+    if not (ROOT / cursor.get("logo", "")).is_file():
+        fail(where, f"logo {cursor.get('logo')!r} is not a file in the repo")
+    servers = cursor.get("mcpServers", {})
+    if [srv.get("url") for srv in servers.values()] != [HOSTED_MCP_URL]:
+        fail(where, f"mcpServers should be exactly the hosted server {HOSTED_MCP_URL}, got {servers}")
 
 
 def refresh_local_surface(surface: dict) -> None:
