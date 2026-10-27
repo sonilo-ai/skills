@@ -1,0 +1,55 @@
+{
+  "name": "sonilo",
+  "displayName": "Sonilo",
+  "version": "2.6.0",
+  "description": "Licensed music, sound effects, dubbing and audio ducking for your videos, from Sonilo's hosted MCP server (OAuth sign-in, no API key) and the skills that tell the agent which tool to call.",
+  "author": {
+    "name": "Sonilo AI",
+    "email": "info@sonilo.com"
+  },
+  "homepage": "https://platform.sonilo.com/mcp",
+  "repository": "https://github.com/sonilo-ai/skills",
+  "license": "MIT",
+  "logo": "assets/logo.png",
+  "category": "integrations",
+  "keywords": [
+    "sonilo",
+    "music",
+    "sound-effects",
+    "audio",
+    "video-to-music",
+    "video-to-sfx",
+    "text-to-music",
+    "dubbing",
+    "audio-ducking",
+    "mcp",
+    "agent-skills"
+  ],
+  "tags": [
+    "sonilo",
+    "audio",
+    "music",
+    "mcp"
+  ],
+  "skills": [
+    "./video-to-music/SKILL.md",
+    "./text-to-music/SKILL.md",
+    "./video-to-sfx/SKILL.md",
+    "./text-to-sfx/SKILL.md",
+    "./video-to-sound/SKILL.md",
+    "./video-analysis/SKILL.md",
+    "./audio-ducking/SKILL.md",
+    "./auto-dubbing/SKILL.md",
+    "./proofread/SKILL.md",
+    "./task-recovery/SKILL.md",
+    "./account/SKILL.md",
+    "./audio-playback/SKILL.md",
+    "./setup-api-key/SKILL.md"
+  ],
+  "mcpServers": {
+    "sonilo": {
+      "type": "http",
+      "url": "https://api.sonilo.com/mcp"
+    }
+  }
+}

@@ -8,7 +8,7 @@ Sonilo's flagship capability is **video-to-music**: hand it a finished video and
 
 ## Installation
 
-These skills follow the community [Agent Skills specification](https://agentskills.io/specification), so any compatible tool can install them via `npx skills add`. This repo is also set up as a **Claude Code plugin marketplace**, so Claude Code users can install the same skills with `/plugin` instead, and a **Muse Code plugin** that also connects the hosted Sonilo MCP server — pick whichever fits your workflow.
+These skills follow the community [Agent Skills specification](https://agentskills.io/specification), so any compatible tool can install them via `npx skills add`. This repo is also set up as a **Claude Code plugin marketplace**, so Claude Code users can install the same skills with `/plugin` instead, a **Muse Code plugin** and a **Cursor plugin** that also connect the hosted Sonilo MCP server — pick whichever fits your workflow.
 
 ### Option 1: `npx skills` (any compatible assistant)
 
@@ -54,6 +54,10 @@ If you would rather sign in ahead of time, add the same server to `~/.config/mus
 ```
 
 **Muse app** (muse.ai, not the CLI): there is no plugin install. Ask Muse to *"build a custom integration to Sonilo — its MCP server URL is https://api.sonilo.com/mcp, streamable HTTP, OAuth sign-in"*, and sign in with your Sonilo Platform account when it asks.
+
+### Option 4: Cursor plugin
+
+`.cursor-plugin/plugin.json` packages the same thirteen skills with the hosted Sonilo MCP server (`https://api.sonilo.com/mcp`) for the [Cursor Marketplace](https://cursor.com/marketplace). Like the Muse Code plugin it brings the tools: the first Sonilo tool call asks you to sign in with a **Sonilo Platform** account, and no key goes into Cursor's config. Until the listing is live, add just the server with the one-click button on [platform.sonilo.com/mcp](https://platform.sonilo.com/mcp) (Cursor tab) and the skills with `npx skills add sonilo-ai/skills`.
 
 ## Available Skills
 
